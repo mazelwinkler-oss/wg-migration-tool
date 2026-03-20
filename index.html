@@ -105,6 +105,8 @@
 <div class="steps" id="steps">
   <div class="step active" data-step="1" onclick="goToStep(1)"><div class="step-num">1</div> Dateien</div>
   <div class="step-sep">›</div>
+  <div class="step" data-step="1.5" id="step-mapping-nav" style="display:none" onclick="goToStep(1.5)"><div class="step-num">!</div> Zuordnung</div>
+  <div class="step-sep" id="step-sep-mapping" style="display:none">›</div>
   <div class="step" data-step="2" onclick="goToStep(2)"><div class="step-num">2</div> Vorschau</div>
   <div class="step-sep">›</div>
   <div class="step" data-step="3" onclick="goToStep(3)"><div class="step-num">3</div> Validierung</div>
@@ -196,6 +198,32 @@
       </button>
       <span id="upload-hint" style="font-size:13px;color:var(--gray-500)">Bitte alle 3 Dateitypen hochladen</span>
     </div>
+  </div>
+</div>
+
+<!-- ══════════ STEP 1.5: MANUAL MAPPING ══════════ -->
+<div class="page" id="page-1.5">
+  <div class="card">
+    <h2>🔗 Sektionen zuordnen</h2>
+    <p>Das Tool konnte die Sektion-IDs nicht automatisch auflösen (die Term-Definitionen fehlen im Export). Bitte ordne jede ID der richtigen Sektion zu – oder klicke auf <strong>„Auto-Zuordnen"</strong> für einen Vorschlag.</p>
+
+    <div class="alert alert-warn" style="margin-top:16px">
+      ⚠️ <div><strong>Tipp für künftige Exporte:</strong> Exportiere bei WordPress unter <em>Werkzeuge → Exportieren → Alle Inhalte</em>. Dann passiert das hier automatisch ohne diesen Schritt.</div>
+    </div>
+
+    <div class="btn-actions" style="margin-top:16px;margin-bottom:20px">
+      <button class="btn btn-primary" onclick="autoAssignMapping()">✨ Auto-Zuordnen (Vorschlag)</button>
+      <span style="font-size:13px;color:var(--gray-500)">Das Tool rät anhand der Reihenfolge – bitte prüfen</span>
+    </div>
+
+    <div id="mapping-table-wrap">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+
+  <div class="btn-actions">
+    <button class="btn btn-secondary" onclick="goToStep(1)">← Zurück</button>
+    <button class="btn btn-primary btn-lg" onclick="applyManualMapping()">Zuordnung bestätigen →</button>
   </div>
 </div>
 
@@ -702,13 +730,16 @@ function generateWXR(categories, lessons, products) {
 // PIPELINE  – runs every time the user advances past step 1
 // ═══════════════════════════════════════════════════
 function runPipeline() {
-  const { sectionMap, termIdToSlug } = buildSectionMap(S.files.kurse);
-  S.sectionMap   = sectionMap;
-  S.termIdToSlug = termIdToSlug;
+  // Only rebuild sectionMap if not already done (manual mapping may have built it)
+  if (!S.sectionMap.size) {
+    const { sectionMap, termIdToSlug } = buildSectionMap(S.files.kurse);
+    S.sectionMap   = sectionMap;
+    S.termIdToSlug = new Map([...S.termIdToSlug, ...termIdToSlug]);
+  }
 
   const rawLessons  = parseLessons(S.files.lessons);
   const rawProducts = parseProducts(S.files.angebote);
-  const merged      = mergeData(rawLessons, sectionMap, termIdToSlug);
+  const merged      = mergeData(rawLessons, S.sectionMap, S.termIdToSlug);
 
   S.categories          = buildCategoryList(merged);
   S.transformedLessons  = transformLessons(merged);
@@ -718,22 +749,164 @@ function runPipeline() {
 // ═══════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════
+function needsManualMapping() {
+  // Check after files loaded: are there unresolved numeric section IDs?
+  if (!S.files.lessons) return false;
+  const rawLessons = parseLessons(S.files.lessons);
+  const hasMissing = rawLessons.some(l => {
+    const sid = (l.sectionId||'').trim();
+    if (!sid) return false;
+    return !S.termIdToSlug.has(sid) && !S.sectionMap.has(sid);
+  });
+  return hasMissing;
+}
+
 function goToStep(n) {
-  if (n >= 2 && !['lessons','kurse','angebote'].every(k => S.files[k])) {
-    showUploadError('Bitte alle 3 Dateien hochladen.');
+  if (n >= 1.5 && !['lessons','kurse','angebote'].every(k => S.files[k])) {
+    showUploadError('Bitte zuerst die Dateien hochladen.');
     return;
   }
-  if (n === 2) { runPipeline(); renderPreview(); }
+
+  // After upload: build section map so we can check if mapping needed
+  if (n === 2 || n === 1.5) {
+    const { sectionMap, termIdToSlug } = buildSectionMap(S.files.kurse);
+    S.sectionMap   = sectionMap;
+    S.termIdToSlug = new Map([...S.termIdToSlug, ...termIdToSlug]);
+  }
+
+  // Intercept: go to mapping step if term defs are missing
+  if (n === 2 && needsManualMapping()) {
+    renderMappingStep();
+    n = 1.5;
+    // Show mapping step in nav
+    document.getElementById('step-mapping-nav').style.display = 'flex';
+    document.getElementById('step-sep-mapping').style.display = 'flex';
+  } else if (n === 2) {
+    runPipeline(); renderPreview();
+  }
+
   if (n === 3) { runValidation(); }
   if (n === 4) { prepareExport(); }
 
   S.step = n;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + n).classList.add('active');
+  const pageEl = document.getElementById('page-' + n);
+  if (pageEl) pageEl.classList.add('active');
+
   document.querySelectorAll('.step').forEach(s => {
-    const sn = +s.dataset.step;
+    const sn = parseFloat(s.dataset.step);
     s.classList.toggle('active', sn === n);
     s.classList.toggle('done',   sn < n);
+  });
+  window.scrollTo(0, 0);
+}
+
+// ═══════════════════════════════════════════════════
+// MANUAL MAPPING STEP
+// ═══════════════════════════════════════════════════
+function renderMappingStep() {
+  const rawLessons = parseLessons(S.files.lessons);
+
+  // Collect unique section IDs that are unresolved
+  const unresolvedIds = [...new Set(
+    rawLessons
+      .map(l => (l.sectionId||'').trim())
+      .filter(id => id && !S.termIdToSlug.has(id) && !S.sectionMap.has(id))
+  )].sort((a,b) => parseInt(a)-parseInt(b));
+
+  // Collect known section slugs + names from courses
+  const knownSections = [];
+  S.sectionMap.forEach((val, key) => {
+    if (!key.startsWith('__n__')) {
+      knownSections.push({ slug: val.slug, name: val.name, course: val.parentCourse });
+    }
+  });
+  knownSections.sort((a,b) => a.slug.localeCompare(b.slug));
+
+  if (!unresolvedIds.length) {
+    goToStep(2); return;
+  }
+
+  const optionsHtml = knownSections.map(s =>
+    `<option value="${s.slug}">${s.name} (${s.course})</option>`
+  ).join('');
+
+  const rows = unresolvedIds.map((id, i) => {
+    const lessonCount = rawLessons.filter(l => l.sectionId === id).length;
+    return `<tr>
+      <td style="font-family:monospace;font-weight:700;color:var(--gray-700)">${id}</td>
+      <td style="font-size:12px;color:var(--gray-500)">${lessonCount} Lektion${lessonCount!==1?'en':''}</td>
+      <td>
+        <select id="map-${id}" style="width:100%;padding:6px 8px;border:1px solid var(--gray-300);border-radius:6px;font-size:13px">
+          <option value="">— bitte zuordnen —</option>
+          ${optionsHtml}
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('mapping-table-wrap').innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr>
+          <th style="text-align:left;padding:8px 12px;background:var(--gray-50);border-bottom:2px solid var(--gray-200);width:80px">Sektion-ID</th>
+          <th style="text-align:left;padding:8px 12px;background:var(--gray-50);border-bottom:2px solid var(--gray-200);width:100px">Lektionen</th>
+          <th style="text-align:left;padding:8px 12px;background:var(--gray-50);border-bottom:2px solid var(--gray-200)">Zuordnen zu Sektion</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="font-size:12px;color:var(--gray-500);margin-top:12px">
+      ${unresolvedIds.length} IDs · ${rawLessons.filter(l=>unresolvedIds.includes((l.sectionId||'').trim())).length} Lektionen betroffen
+    </div>`;
+
+  // Store for auto-assign
+  S._unresolvedIds    = unresolvedIds;
+  S._knownSections    = knownSections;
+}
+
+function autoAssignMapping() {
+  // Strategy: sort IDs numerically, sort sections by slug, assign positionally
+  const ids      = [...S._unresolvedIds].sort((a,b) => parseInt(a)-parseInt(b));
+  const sections = [...S._knownSections].sort((a,b) => a.slug.localeCompare(b.slug));
+
+  ids.forEach((id, i) => {
+    const sel = document.getElementById('map-' + id);
+    if (sel && sections[i]) sel.value = sections[i].slug;
+  });
+}
+
+function applyManualMapping() {
+  const ids = S._unresolvedIds || [];
+  let mapped = 0;
+  ids.forEach(id => {
+    const sel = document.getElementById('map-' + id);
+    const slug = sel ? sel.value : '';
+    if (slug) {
+      S.termIdToSlug.set(id, slug);
+      mapped++;
+    }
+  });
+
+  if (mapped < ids.length) {
+    const remaining = ids.length - mapped;
+    if (!confirm(`${remaining} ID(s) noch nicht zugeordnet. Trotzdem fortfahren? (Diese Lektionen werden als Fehler angezeigt)`)) return;
+  }
+
+  // Rebuild section map with new termIdToSlug
+  const { sectionMap } = buildSectionMap(S.files.kurse);
+  S.sectionMap = sectionMap;
+  runPipeline();
+  renderPreview();
+
+  // Jump to step 2 directly
+  S.step = 2;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-2').classList.add('active');
+  document.querySelectorAll('.step').forEach(s => {
+    const sn = parseFloat(s.dataset.step);
+    s.classList.toggle('active', sn === 2);
+    s.classList.toggle('done',   sn < 2);
   });
   window.scrollTo(0, 0);
 }
