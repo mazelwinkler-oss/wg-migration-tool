@@ -5,190 +5,938 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>webGefährte – WXR Migration Tool</title>
 <style>
-  :root {
-    --green: #92BB20; --green-dark: #7a9e1a; --green-light: #f0f6e0;
-    --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
-    --gray-300: #d1d5db; --gray-500: #6b7280; --gray-600: #4b5563;
-    --gray-700: #374151; --gray-800: #1f2937; --gray-900: #111827;
-    --red: #ef4444; --orange: #f97316; --blue: #3b82f6;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gray-50); color: var(--gray-800); min-height: 100vh; }
-  .header { background: white; border-bottom: 2px solid var(--green); padding: 16px 32px; display: flex; align-items: center; gap: 12px; }
-  .header-logo { width: 36px; height: 36px; background: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-  .header-logo svg { fill: white; }
-  .header h1 { font-size: 20px; font-weight: 700; color: var(--gray-900); }
-  .header-sub { font-size: 13px; color: var(--gray-600); margin-top: 2px; }
-  .steps { background: white; border-bottom: 1px solid var(--gray-200); padding: 16px 32px; display: flex; gap: 0; overflow-x: auto; }
-  .step { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--gray-600); flex: 1; white-space: nowrap; }
-  .step.active { background: var(--green-light); color: var(--green-dark); font-weight: 600; }
-  .step.done { color: var(--green-dark); }
-  .step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--gray-200); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-  .step.active .step-num, .step.done .step-num { background: var(--green); color: white; }
-  .step-sep { color: var(--gray-300); font-size: 20px; display: flex; align-items: center; padding: 0 2px; }
-  .main { max-width: 1100px; margin: 32px auto; padding: 0 24px 80px; }
-  .card { background: white; border-radius: 12px; border: 1px solid var(--gray-200); padding: 24px; margin-bottom: 20px; }
-  .card h2 { font-size: 18px; font-weight: 700; color: var(--gray-900); margin-bottom: 6px; }
-  .card > p { font-size: 14px; color: var(--gray-600); }
-  .upload-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 20px; }
-  .upload-zone { border: 2px dashed var(--gray-300); border-radius: 10px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all .2s; background: var(--gray-50); }
-  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--green); background: var(--green-light); }
-  .upload-zone.loaded { border-color: var(--green); background: var(--green-light); border-style: solid; }
-  .upload-zone.error { border-color: var(--red); background: #fef2f2; }
-  .upload-zone .uz-icon { font-size: 32px; margin-bottom: 8px; }
-  .upload-zone h3 { font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 4px; }
-  .upload-zone p { font-size: 12px; color: var(--gray-500); word-break: break-all; }
-  .upload-zone .badge { display: inline-block; background: var(--green); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-top: 6px; }
-  .file-input { display: none; }
-  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; }
-  .btn-primary { background: var(--green); color: white; }
-  .btn-primary:hover:not(:disabled) { background: var(--green-dark); }
-  .btn-primary:disabled { background: var(--gray-300); cursor: not-allowed; color: var(--gray-500); }
-  .btn-secondary { background: white; color: var(--gray-700); border: 1px solid var(--gray-300); }
-  .btn-secondary:hover { background: var(--gray-100); }
-  .btn-lg { padding: 14px 28px; font-size: 16px; }
-  .btn-actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; align-items: center; }
-  .table-wrap { overflow-x: auto; margin-top: 16px; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { background: var(--gray-50); padding: 10px 12px; text-align: left; font-weight: 600; color: var(--gray-600); border-bottom: 2px solid var(--gray-200); white-space: nowrap; }
-  td { padding: 9px 12px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); vertical-align: top; }
-  tr:hover td { background: var(--gray-50); }
-  .tag { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-  .tag-green { background: var(--green-light); color: var(--green-dark); }
-  .tag-blue { background: #eff6ff; color: #1d4ed8; }
-  .tag-orange { background: #fff7ed; color: #c2410c; }
-  .tag-red { background: #fef2f2; color: #b91c1c; }
-  .tag-gray { background: var(--gray-100); color: var(--gray-600); }
-  .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 16px; }
-  .stat-card { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 10px; padding: 14px; }
-  .stat-num { font-size: 26px; font-weight: 700; color: var(--green-dark); }
-  .stat-label { font-size: 12px; color: var(--gray-600); margin-top: 3px; }
-  .tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--gray-200); overflow-x: auto; }
-  .tab { padding: 10px 14px; font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--gray-600); white-space: nowrap; }
-  .tab.active { color: var(--green-dark); border-bottom-color: var(--green); }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-  .alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; display: flex; gap: 10px; line-height: 1.5; }
-  .alert-info { background: #eff6ff; color: #1e40af; border-left: 4px solid var(--blue); }
-  .alert-success { background: var(--green-light); color: var(--green-dark); border-left: 4px solid var(--green); }
-  .alert-warn { background: #fffbeb; color: #92400e; border-left: 4px solid #f59e0b; }
-  .alert-error { background: #fef2f2; color: #b91c1c; border-left: 4px solid var(--red); }
-  .page { display: none; }
-  .page.active { display: block; }
-  /* Category tree */
-  .cat-tree { font-size: 13px; }
-  .cat-course-row { font-weight: 700; color: var(--gray-900); padding: 10px 0 6px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .cat-section-row { padding: 6px 0 6px 20px; color: var(--gray-700); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .cat-section-row::before { content: '└─'; color: var(--gray-400); font-family: monospace; margin-right: 4px; }
-  /* Validation list */
-  .val-list { list-style: none; }
-  .val-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--gray-100); font-size: 13px; }
-  .val-item:last-child { border-bottom: none; }
-  .val-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
-  .val-msg { flex: 1; }
-  .val-detail { color: var(--gray-500); font-size: 11px; margin-top: 4px; font-family: monospace; word-break: break-all; }
-  .val-summary-bar { display: flex; gap: 16px; flex-wrap: wrap; padding: 12px 16px; background: var(--gray-50); border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+/* ═══════════════════════════════════════════════
+   DESIGN SYSTEM – Bold & Expressive
+   Primary: #92BB20  Dark: #0d1117  Accent: #c8f135
+═══════════════════════════════════════════════ */
+:root {
+  --green:       #92BB20;
+  --green-dark:  #7a9e1a;
+  --green-light: #f0f7d4;
+  --green-glow:  #c8f135;
+  --dark:        #0d1117;
+  --dark-2:      #161b22;
+  --dark-3:      #21262d;
+  --white:       #ffffff;
+  --gray-50:     #f8fafc;
+  --gray-100:    #f1f5f9;
+  --gray-200:    #e2e8f0;
+  --gray-300:    #cbd5e1;
+  --gray-400:    #94a3b8;
+  --gray-500:    #64748b;
+  --gray-600:    #475569;
+  --gray-700:    #334155;
+  --gray-800:    #1e293b;
+  --gray-900:    #0f172a;
+  --red:         #ef4444;
+  --orange:      #f97316;
+  --blue:        #3b82f6;
+  --radius-sm:   8px;
+  --radius:      14px;
+  --radius-lg:   20px;
+  --shadow-sm:   0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow:      0 4px 16px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05);
+  --shadow-lg:   0 12px 40px rgba(0,0,0,.12), 0 4px 12px rgba(0,0,0,.07);
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-800);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══ HEADER ═══════════════════════════════════ */
+.header {
+  background: var(--dark);
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.header-logo {
+  width: 40px;
+  height: 40px;
+  background: var(--green);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(146,187,32,.2);
+}
+.header-logo svg { fill: white; }
+.header-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -.02em;
+  line-height: 1.2;
+}
+.header-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,.4);
+  letter-spacing: .01em;
+  margin-top: 2px;
+}
+.header-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(146,187,32,.12);
+  border: 1px solid rgba(146,187,32,.25);
+  color: var(--green-glow);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 20px;
+  letter-spacing: .02em;
+}
+.header-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+}
+
+/* ═══ STEP PROGRESS BAR ════════════════════════ */
+.steps-wrap {
+  background: white;
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0 40px;
+  overflow-x: auto;
+}
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 64px;
+  max-width: 900px;
+}
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-400);
+  transition: all .2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  position: relative;
+}
+.step:hover { color: var(--gray-700); background: var(--gray-100); }
+.step.active {
+  color: var(--gray-900);
+  font-weight: 700;
+  background: var(--green-light);
+}
+.step.done { color: var(--green-dark); }
+.step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--gray-100);
+  border: 2px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+  transition: all .2s;
+  color: var(--gray-400);
+}
+.step.active .step-num {
+  background: var(--green);
+  border-color: var(--green);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(146,187,32,.18);
+}
+.step.done .step-num {
+  background: var(--green-dark);
+  border-color: var(--green-dark);
+  color: white;
+}
+.step-sep {
+  color: var(--gray-300);
+  font-size: 18px;
+  padding: 0 4px;
+  flex-shrink: 0;
+  user-select: none;
+}
+.step-label-alert {
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 2px;
+}
+
+/* ═══ MAIN CONTENT ═════════════════════════════ */
+.main {
+  max-width: 1100px;
+  margin: 36px auto;
+  padding: 0 28px 100px;
+}
+
+/* ═══ PAGE HERO (step-specific top text) ═══════ */
+.page-hero {
+  margin-bottom: 28px;
+}
+.page-hero h1 {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--gray-900);
+  letter-spacing: -.03em;
+  line-height: 1.1;
+}
+.page-hero h1 span { color: var(--green); }
+.page-hero p {
+  font-size: 15px;
+  color: var(--gray-500);
+  margin-top: 8px;
+  max-width: 560px;
+  line-height: 1.6;
+}
+
+/* ═══ CARDS ════════════════════════════════════ */
+.card {
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
+  padding: 28px 32px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.card-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--gray-900);
+  letter-spacing: -.02em;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-title-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--green-light);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.card-desc {
+  font-size: 14px;
+  color: var(--gray-500);
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+/* ═══ HOW-TO BANNER ════════════════════════════ */
+.howto-banner {
+  background: linear-gradient(135deg, #0d1117 0%, #1a2235 100%);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-top: 24px;
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+.howto-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(146,187,32,.15);
+  border: 1px solid rgba(146,187,32,.3);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.howto-text { flex: 1; }
+.howto-text strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 5px;
+}
+.howto-text .path {
+  font-size: 13px;
+  color: rgba(255,255,255,.7);
+  line-height: 1.5;
+}
+.howto-text .path code {
+  background: rgba(146,187,32,.15);
+  color: var(--green-glow);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+.howto-text .note {
+  font-size: 12px;
+  color: rgba(255,255,255,.4);
+  margin-top: 4px;
+}
+
+/* ═══ DROP ZONE ════════════════════════════════ */
+#zone-main {
+  margin-top: 24px;
+  border: 2px dashed var(--gray-300);
+  border-radius: var(--radius-lg);
+  padding: 64px 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .25s ease;
+  background: var(--gray-50);
+  position: relative;
+  overflow: hidden;
+}
+#zone-main::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 40% at 50% 110%, rgba(146,187,32,.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+#zone-main:hover,
+#zone-main.drag-over {
+  border-color: var(--green);
+  background: var(--green-light);
+  transform: scale(1.005);
+  box-shadow: 0 0 0 4px rgba(146,187,32,.12);
+}
+.zone-emoji {
+  font-size: 56px;
+  margin-bottom: 16px;
+  display: block;
+  line-height: 1;
+  transition: transform .2s;
+}
+#zone-main:hover .zone-emoji { transform: scale(1.1) translateY(-4px); }
+.zone-headline {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--gray-800);
+  letter-spacing: -.02em;
+  margin-bottom: 6px;
+}
+.zone-sub {
+  font-size: 13px;
+  color: var(--gray-400);
+}
+.zone-types {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.zone-type-pill {
+  background: white;
+  border: 1px solid var(--gray-200);
+  color: var(--gray-500);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: .02em;
+}
+
+/* ═══ STATUS CARDS ══════════════════════════════ */
+#status-cards { margin-top: 24px; }
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.status-card-item {
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  background: var(--gray-50);
+  transition: all .25s;
+}
+.status-card-item.loaded {
+  border-color: var(--green);
+  background: var(--green-light);
+}
+.status-card-item.warn {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+.sc-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.sc-icon { font-size: 22px; line-height: 1; }
+.sc-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gray-700);
+}
+.sc-status {
+  font-size: 12px;
+  color: var(--gray-400);
+  line-height: 1.4;
+}
+.status-card-item.loaded .sc-status { color: var(--green-dark); }
+.terms-card {
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  background: var(--gray-50);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all .25s;
+}
+.terms-card.loaded { border-color: var(--green); background: var(--green-light); }
+.terms-card.warn   { border-color: #f59e0b;      background: #fffbeb; }
+
+/* ═══ PRIVACY NOTICE ════════════════════════════ */
+.privacy-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--gray-600);
+}
+.privacy-notice .lock-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--green-light);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* ═══ BUTTONS ═══════════════════════════════════ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all .18s;
+  text-decoration: none;
+  letter-spacing: -.01em;
+}
+.btn-primary {
+  background: var(--green);
+  color: white;
+  box-shadow: 0 2px 8px rgba(146,187,32,.35);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--green-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(146,187,32,.4);
+}
+.btn-primary:disabled {
+  background: var(--gray-200);
+  cursor: not-allowed;
+  color: var(--gray-400);
+  box-shadow: none;
+  transform: none;
+}
+.btn-secondary {
+  background: white;
+  color: var(--gray-700);
+  border: 1.5px solid var(--gray-200);
+}
+.btn-secondary:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+  transform: translateY(-1px);
+}
+.btn-lg { padding: 14px 28px; font-size: 16px; border-radius: 12px; }
+.btn-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.btn-hint {
+  font-size: 13px;
+  color: var(--gray-400);
+  font-weight: 500;
+}
+.btn-hint.ready {
+  color: var(--green-dark);
+  font-weight: 700;
+}
+
+/* ═══ ALERTS ════════════════════════════════════ */
+.alert {
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  margin-bottom: 14px;
+  display: flex;
+  gap: 12px;
+  line-height: 1.6;
+  align-items: flex-start;
+}
+.alert-info    { background: #eff6ff;         color: #1e40af;  border-left: 4px solid var(--blue); }
+.alert-success { background: var(--green-light); color: var(--green-dark); border-left: 4px solid var(--green); }
+.alert-warn    { background: #fffbeb;         color: #92400e;  border-left: 4px solid #f59e0b; }
+.alert-error   { background: #fef2f2;         color: #b91c1c;  border-left: 4px solid var(--red); }
+
+/* ═══ TABLES ════════════════════════════════════ */
+.table-wrap { overflow-x: auto; margin-top: 4px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead tr { border-bottom: 2px solid var(--gray-200); }
+th {
+  padding: 11px 14px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--gray-500);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  background: var(--gray-50);
+}
+th:first-child { border-radius: 8px 0 0 0; }
+th:last-child  { border-radius: 0 8px 0 0; }
+td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-700);
+  vertical-align: top;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--gray-50); }
+.mono { font-family: 'SF Mono','Fira Code',monospace; }
+
+/* ═══ TAGS ══════════════════════════════════════ */
+.tag {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+.tag-green  { background: var(--green-light); color: var(--green-dark); }
+.tag-blue   { background: #eff6ff; color: #1d4ed8; }
+.tag-orange { background: #fff7ed; color: #c2410c; }
+.tag-red    { background: #fef2f2; color: #b91c1c; }
+.tag-gray   { background: var(--gray-100); color: var(--gray-500); }
+
+/* ═══ STATS GRID ════════════════════════════════ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+.stat-card {
+  background: var(--gray-50);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 20px 18px;
+  position: relative;
+  overflow: hidden;
+  transition: all .2s;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--green), var(--green-glow));
+  border-radius: 0 0 2px 2px;
+}
+.stat-card:hover { border-color: var(--green); transform: translateY(-2px); box-shadow: var(--shadow); }
+.stat-num {
+  font-size: 40px;
+  font-weight: 900;
+  color: var(--gray-900);
+  letter-spacing: -.04em;
+  line-height: 1;
+}
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-400);
+  margin-top: 6px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+/* ═══ TABS ══════════════════════════════════════ */
+.tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 20px;
+  border-bottom: 1.5px solid var(--gray-200);
+  padding-bottom: 0;
+  overflow-x: auto;
+}
+.tab {
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -1.5px;
+  color: var(--gray-500);
+  white-space: nowrap;
+  transition: all .15s;
+  border-radius: 8px 8px 0 0;
+}
+.tab:hover { color: var(--gray-800); background: var(--gray-50); }
+.tab.active { color: var(--green-dark); border-bottom-color: var(--green); background: var(--green-light); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ═══ CATEGORY TREE ═════════════════════════════ */
+.cat-tree { font-size: 13px; }
+.cat-course-row {
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--gray-900);
+  padding: 12px 0 10px;
+  border-bottom: 1.5px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  letter-spacing: -.01em;
+}
+.cat-section-row {
+  padding: 7px 0 7px 24px;
+  color: var(--gray-600);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--gray-100);
+}
+.cat-section-row::before {
+  content: '└─';
+  color: var(--gray-300);
+  font-family: monospace;
+  margin-right: 4px;
+  font-size: 12px;
+}
+.cat-section-row:last-child { border-bottom: none; }
+
+/* ═══ VALIDATION ════════════════════════════════ */
+.val-summary-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  background: var(--gray-50);
+  border-radius: var(--radius);
+  font-size: 13px;
+  margin-bottom: 18px;
+  border: 1.5px solid var(--gray-200);
+}
+.val-summary-bar span {
+  padding: 4px 10px;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+  font-weight: 500;
+}
+.val-list { list-style: none; }
+.val-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--gray-100);
+  font-size: 13px;
+}
+.val-item:last-child { border-bottom: none; }
+.val-icon { font-size: 18px; flex-shrink: 0; margin-top: 0; }
+.val-msg { flex: 1; line-height: 1.5; }
+.val-detail {
+  color: var(--gray-400);
+  font-size: 11px;
+  margin-top: 5px;
+  font-family: 'SF Mono','Fira Code',monospace;
+  word-break: break-all;
+  background: var(--gray-50);
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--gray-200);
+}
+
+/* ═══ EXPORT STEP ═══════════════════════════════ */
+.export-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 24px 0;
+}
+.export-step-item {
+  background: var(--gray-50);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+  position: relative;
+}
+.export-step-num {
+  width: 32px;
+  height: 32px;
+  background: var(--dark);
+  color: var(--green-glow);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 900;
+  margin: 0 auto 10px;
+}
+.export-step-text {
+  font-size: 12px;
+  color: var(--gray-600);
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* ═══ MAPPING STEP ══════════════════════════════ */
+.mapping-warn {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1.5px solid #f59e0b;
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin: 20px 0;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.mapping-warn-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.mapping-warn-text strong { display: block; font-size: 14px; color: #92400e; margin-bottom: 4px; }
+.mapping-warn-text p { font-size: 13px; color: #78350f; line-height: 1.5; }
+.mapping-warn-text code {
+  background: rgba(245,158,11,.15);
+  color: #92400e;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+/* ═══ PAGE SHOW/HIDE ════════════════════════════ */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ═══ DIVIDER ═══════════════════════════════════ */
+.section-divider {
+  height: 1px;
+  background: var(--gray-200);
+  margin: 24px 0;
+}
+
+/* ═══ RESPONSIVE ════════════════════════════════ */
+@media (max-width: 768px) {
+  .header { padding: 0 20px; }
+  .steps-wrap { padding: 0 20px; }
+  .main { padding: 0 16px 80px; margin-top: 24px; }
+  .card { padding: 20px; }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+  .export-steps { grid-template-columns: repeat(2, 1fr); }
+  .status-grid { grid-template-columns: 1fr; }
+  .page-hero h1 { font-size: 24px; }
+  .header-badge { display: none; }
+}
+@media (max-width: 540px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .export-steps { grid-template-columns: 1fr 1fr; }
+}
 </style>
 </head>
 <body>
 
+<!-- ══ HEADER ══════════════════════════════════════════ -->
 <div class="header">
-  <div class="header-logo">
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+  <div class="header-brand">
+    <div class="header-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    </div>
+    <div>
+      <div class="header-title">webGefährte &mdash; Migration Tool</div>
+      <div class="header-sub">MemberPress Courses → WordPress WXR</div>
+    </div>
   </div>
-  <div>
-    <h1>webGefährte – Kurs-Migration</h1>
-    <div class="header-sub">MemberPress Courses → WordPress WXR (Tools → Import → WordPress)</div>
-  </div>
+  <div class="header-badge">100 % lokal &amp; sicher</div>
 </div>
 
-<div class="steps" id="steps">
-  <div class="step active" data-step="1" onclick="goToStep(1)"><div class="step-num">1</div> Dateien</div>
-  <div class="step-sep">›</div>
-  <div class="step" data-step="1.5" id="step-mapping-nav" style="display:none" onclick="goToStep(1.5)"><div class="step-num">!</div> Zuordnung</div>
-  <div class="step-sep" id="step-sep-mapping" style="display:none">›</div>
-  <div class="step" data-step="2" onclick="goToStep(2)"><div class="step-num">2</div> Vorschau</div>
-  <div class="step-sep">›</div>
-  <div class="step" data-step="3" onclick="goToStep(3)"><div class="step-num">3</div> Validierung</div>
-  <div class="step-sep">›</div>
-  <div class="step" data-step="4" onclick="goToStep(4)"><div class="step-num">4</div> Export</div>
+<!-- ══ STEPS ════════════════════════════════════════════ -->
+<div class="steps-wrap">
+  <div class="steps" id="steps">
+    <div class="step active" data-step="1" onclick="goToStep(1)">
+      <div class="step-num">1</div>
+      Dateien hochladen
+    </div>
+    <div class="step-sep">›</div>
+    <div class="step" data-step="1.5" id="step-mapping-nav" style="display:none" onclick="goToStep(1.5)">
+      <div class="step-num">!</div>
+      Zuordnung
+      <span class="step-label-alert">Manuell</span>
+    </div>
+    <div class="step-sep" id="step-sep-mapping" style="display:none">›</div>
+    <div class="step" data-step="2" onclick="goToStep(2)">
+      <div class="step-num">2</div>
+      Vorschau
+    </div>
+    <div class="step-sep">›</div>
+    <div class="step" data-step="3" onclick="goToStep(3)">
+      <div class="step-num">3</div>
+      Validierung
+    </div>
+    <div class="step-sep">›</div>
+    <div class="step" data-step="4" onclick="goToStep(4)">
+      <div class="step-num">4</div>
+      Export
+    </div>
+  </div>
 </div>
 
 <div class="main">
 
 <!-- ══════════ STEP 1: UPLOAD ══════════ -->
 <div class="page active" id="page-1">
-  <div class="card">
-    <h2>📁 Kursdateien hochladen</h2>
-    <p>Exportiere deine Kursdateien aus der alten Plattform und ziehe sie hier rein – egal wie sie heißen, das Tool erkennt alles automatisch.</p>
 
-    <!-- How-to export instruction -->
-    <div class="alert alert-info" style="margin-top:20px">
-      ℹ️ <div>
-        <strong>So exportierst du aus WordPress:</strong><br>
-        WP Admin → <strong>Werkzeuge → Exportieren → Alle Inhalte → Exportieren</strong><br>
-        <span style="font-size:12px;opacity:.85">Du bekommst eine einzelne XML-Datei – die lädst du hier hoch.</span>
+  <div class="page-hero">
+    <h1>Kursdateien <span>hochladen</span></h1>
+    <p>Exportiere deine Kursdaten aus WordPress und ziehe die XML-Datei einfach hier rein – das Tool erkennt alles automatisch.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <div class="card-title-icon">📤</div>
+      Export aus WordPress vorbereiten
+    </div>
+
+    <div class="howto-banner">
+      <div class="howto-icon">🗂️</div>
+      <div class="howto-text">
+        <strong>So exportierst du aus WordPress</strong>
+        <div class="path">
+          WP Admin → <code>Werkzeuge</code> → <code>Exportieren</code> → <code>Alle Inhalte</code> → <code>Exportdatei herunterladen</code>
+        </div>
+        <div class="note">Eine einzelne XML-Datei genügt – das Tool erkennt Lektionen, Kurse und Angebote automatisch.</div>
       </div>
     </div>
 
-    <!-- Big single drop zone -->
+    <!-- Drop Zone -->
     <div id="zone-main"
-         style="border:2px dashed var(--gray-300);border-radius:12px;padding:56px 24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--gray-50);margin-top:16px"
          onclick="document.getElementById('file-multi').click()"
          ondragover="onMainDragOver(event)"
          ondragleave="onMainDragLeave()"
          ondrop="onMainDrop(event)">
       <input type="file" id="file-multi" accept=".xml" multiple style="display:none" onchange="handleMultiFiles(this.files)">
-      <div style="font-size:52px;margin-bottom:14px" id="main-icon">📂</div>
-      <div style="font-size:17px;font-weight:700;color:var(--gray-800);margin-bottom:6px">XML-Datei hier reinziehen</div>
-      <div style="font-size:13px;color:var(--gray-500)">oder klicken zum Auswählen</div>
+      <span class="zone-emoji" id="main-icon">📂</span>
+      <div class="zone-headline">XML-Datei hier reinziehen</div>
+      <div class="zone-sub">oder klicken zum Auswählen &mdash; mehrere Dateien erlaubt</div>
+      <div class="zone-types">
+        <span class="zone-type-pill">mpcs-lesson</span>
+        <span class="zone-type-pill">mpcs-course</span>
+        <span class="zone-type-pill">memberpressproduct</span>
+        <span class="zone-type-pill">sfwd-*</span>
+        <span class="zone-type-pill">ld-*</span>
+      </div>
     </div>
 
-    <!-- Detection status cards (shown after file loaded) -->
-    <div id="status-cards" style="display:none;margin-top:20px">
-      <div style="font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:10px">Erkannte Inhalte:</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+    <!-- Detection Status Cards -->
+    <div id="status-cards" style="display:none;margin-top:24px">
+      <div style="font-size:12px;font-weight:700;color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px">Erkannte Inhalte</div>
+      <div class="status-grid">
 
-        <div id="card-lessons" style="border:1.5px solid var(--gray-200);border-radius:10px;padding:16px;background:var(--gray-50)">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <span id="icon-lessons" style="font-size:20px">⏳</span>
-            <span style="font-size:13px;font-weight:700;color:var(--gray-700)">Lektionen</span>
+        <div class="status-card-item" id="card-lessons">
+          <div class="sc-header">
+            <span class="sc-icon" id="icon-lessons">⏳</span>
+            <span class="sc-name">Lektionen</span>
           </div>
-          <div id="status-lessons" style="font-size:12px;color:var(--gray-500);margin-top:4px">Nicht gefunden</div>
+          <div class="sc-status" id="status-lessons">Nicht gefunden</div>
         </div>
 
-        <div id="card-kurse" style="border:1.5px solid var(--gray-200);border-radius:10px;padding:16px;background:var(--gray-50)">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <span id="icon-kurse" style="font-size:20px">⏳</span>
-            <span style="font-size:13px;font-weight:700;color:var(--gray-700)">Kurse & Sektionen</span>
+        <div class="status-card-item" id="card-kurse">
+          <div class="sc-header">
+            <span class="sc-icon" id="icon-kurse">⏳</span>
+            <span class="sc-name">Kurse &amp; Sektionen</span>
           </div>
-          <div id="status-kurse" style="font-size:12px;color:var(--gray-500);margin-top:4px">Nicht gefunden</div>
+          <div class="sc-status" id="status-kurse">Nicht gefunden</div>
         </div>
 
-        <div id="card-angebote" style="border:1.5px solid var(--gray-200);border-radius:10px;padding:16px;background:var(--gray-50)">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <span id="icon-angebote" style="font-size:20px">⏳</span>
-            <span style="font-size:13px;font-weight:700;color:var(--gray-700)">Angebote</span>
+        <div class="status-card-item" id="card-angebote">
+          <div class="sc-header">
+            <span class="sc-icon" id="icon-angebote">⏳</span>
+            <span class="sc-name">Angebote</span>
           </div>
-          <div id="status-angebote" style="font-size:12px;color:var(--gray-500);margin-top:4px">Nicht gefunden</div>
+          <div class="sc-status" id="status-angebote">Nicht gefunden</div>
         </div>
 
       </div>
 
-      <!-- Term mapping status -->
-      <div id="card-terms" style="border:1.5px solid var(--gray-200);border-radius:10px;padding:14px;background:var(--gray-50);margin-top:12px;display:flex;align-items:center;gap:10px">
-        <span id="icon-terms" style="font-size:20px">⏳</span>
+      <div class="terms-card" id="card-terms">
+        <span style="font-size:24px" id="icon-terms">⏳</span>
         <div>
           <div style="font-size:13px;font-weight:700;color:var(--gray-700)">Sektion-Zuordnung (Term-Definitionen)</div>
-          <div id="status-terms" style="font-size:12px;color:var(--gray-500);margin-top:2px">Wird geprüft…</div>
+          <div style="font-size:12px;color:var(--gray-400);margin-top:3px" id="status-terms">Wird geprüft…</div>
         </div>
       </div>
     </div>
 
-    <div class="alert alert-success" style="margin-top:18px">
-      🔒 Alles läuft lokal in deinem Browser – keine Daten werden hochgeladen oder gespeichert.
+    <div class="privacy-notice">
+      <div class="lock-icon">🔒</div>
+      <span><strong>Datenschutz garantiert</strong> – alle Verarbeitung läuft lokal in deinem Browser. Es werden keine Daten an Server übermittelt oder gespeichert.</span>
     </div>
-    <div id="upload-error" style="display:none" class="alert alert-error">
+
+    <div id="upload-error" style="display:none" class="alert alert-error" style="margin-top:16px">
       ❌ <span id="upload-error-msg"></span>
     </div>
 
@@ -196,29 +944,40 @@
       <button class="btn btn-primary btn-lg" id="btn-next-1" onclick="goToStep(2)" disabled>
         Weiter zur Vorschau →
       </button>
-      <span id="upload-hint" style="font-size:13px;color:var(--gray-500)">Bitte alle 3 Dateitypen hochladen</span>
+      <span class="btn-hint" id="upload-hint">Bitte XML-Datei hochladen</span>
     </div>
   </div>
+
 </div>
 
 <!-- ══════════ STEP 1.5: MANUAL MAPPING ══════════ -->
 <div class="page" id="page-1.5">
+
+  <div class="page-hero">
+    <h1>Sektionen <span>zuordnen</span></h1>
+    <p>Die Term-Definitionen fehlen im Export. Ordne jede Sektion-ID manuell zu &ndash; oder nutze den automatischen Vorschlag.</p>
+  </div>
+
   <div class="card">
-    <h2>🔗 Sektionen zuordnen</h2>
-    <p>Das Tool konnte die Sektion-IDs nicht automatisch auflösen (die Term-Definitionen fehlen im Export). Bitte ordne jede ID der richtigen Sektion zu – oder klicke auf <strong>„Auto-Zuordnen"</strong> für einen Vorschlag.</p>
-
-    <div class="alert alert-warn" style="margin-top:16px">
-      ⚠️ <div><strong>Tipp für künftige Exporte:</strong> Exportiere bei WordPress unter <em>Werkzeuge → Exportieren → Alle Inhalte</em>. Dann passiert das hier automatisch ohne diesen Schritt.</div>
+    <div class="card-title">
+      <div class="card-title-icon">🔗</div>
+      Manuelle Zuordnung
     </div>
 
-    <div class="btn-actions" style="margin-top:16px;margin-bottom:20px">
+    <div class="mapping-warn">
+      <div class="mapping-warn-icon">⚠️</div>
+      <div class="mapping-warn-text">
+        <strong>Tipp für künftige Exporte</strong>
+        <p>Exportiere unter <code>Werkzeuge → Exportieren → Alle Inhalte</code>. Dann enthält die Datei Term-Definitionen und dieser Schritt entfällt komplett.</p>
+      </div>
+    </div>
+
+    <div class="btn-actions" style="margin-top:0;margin-bottom:24px">
       <button class="btn btn-primary" onclick="autoAssignMapping()">✨ Auto-Zuordnen (Vorschlag)</button>
-      <span style="font-size:13px;color:var(--gray-500)">Das Tool rät anhand der Reihenfolge – bitte prüfen</span>
+      <span class="btn-hint">Zuordnung anhand der Reihenfolge – bitte prüfen</span>
     </div>
 
-    <div id="mapping-table-wrap">
-      <!-- Rendered by JS -->
-    </div>
+    <div id="mapping-table-wrap"></div>
   </div>
 
   <div class="btn-actions">
@@ -229,15 +988,34 @@
 
 <!-- ══════════ STEP 2: PREVIEW ══════════ -->
 <div class="page" id="page-2">
+
+  <div class="page-hero">
+    <h1>Erkannte <span>Inhalte</span></h1>
+    <p>Überblick der verarbeiteten Kursdaten – prüfe die Zuordnungen vor dem Export.</p>
+  </div>
+
   <div class="card">
-    <h2>🔍 Erkannte Inhalte</h2>
-    <p>Überblick nach Verarbeitung aller 3 Dateien.</p>
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-num" id="stat-kurse">0</div><div class="stat-label">Kurse</div></div>
-      <div class="stat-card"><div class="stat-num" id="stat-sektionen">0</div><div class="stat-label">Sektionen</div></div>
-      <div class="stat-card"><div class="stat-num" id="stat-lektionen">0</div><div class="stat-label">Lektionen</div></div>
-      <div class="stat-card"><div class="stat-num" id="stat-angebote">0</div><div class="stat-label">Angebote</div></div>
-      <div class="stat-card"><div class="stat-num" id="stat-quizzes">0</div><div class="stat-label">Quizzes</div></div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-kurse">0</div>
+        <div class="stat-label">Kurse</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-sektionen">0</div>
+        <div class="stat-label">Sektionen</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-lektionen">0</div>
+        <div class="stat-label">Lektionen</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-angebote">0</div>
+        <div class="stat-label">Angebote</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-quizzes">0</div>
+        <div class="stat-label">Quizzes</div>
+      </div>
     </div>
   </div>
 
@@ -255,7 +1033,17 @@
     <div class="tab-content" id="tab-lessons-prev">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>#</th><th>Titel</th><th>Sektion</th><th>Kurs</th><th>Order</th><th>Quiz?</th><th>Slug</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Titel</th>
+              <th>Sektion</th>
+              <th>Kurs</th>
+              <th>Order</th>
+              <th>Quiz?</th>
+              <th>Slug</th>
+            </tr>
+          </thead>
           <tbody id="tbody-lessons-prev"></tbody>
         </table>
       </div>
@@ -264,7 +1052,15 @@
     <div class="tab-content" id="tab-angebote-prev">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>#</th><th>Titel</th><th>→ post_type</th><th>Slug</th><th>Meta-Felder</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Titel</th>
+              <th>→ post_type</th>
+              <th>Slug</th>
+              <th>Meta-Felder</th>
+            </tr>
+          </thead>
           <tbody id="tbody-angebote-prev"></tbody>
         </table>
       </div>
@@ -279,10 +1075,18 @@
 
 <!-- ══════════ STEP 3: VALIDATION ══════════ -->
 <div class="page" id="page-3">
+
+  <div class="page-hero">
+    <h1>Daten <span>validieren</span></h1>
+    <p>Fehler (❌) blockieren den Export. Warnungen (⚠️) sind erlaubt und beeinflussen den Import nicht.</p>
+  </div>
+
   <div class="card">
-    <h2>✅ Validierung</h2>
-    <p>Alle Daten werden vor dem Export geprüft. Fehler (❌) blockieren den Export – Warnungen (⚠️) sind erlaubt.</p>
-    <div id="val-summary-bar" class="val-summary-bar" style="margin-top:16px"></div>
+    <div class="card-title">
+      <div class="card-title-icon">✅</div>
+      Validierungsergebnis
+    </div>
+    <div id="val-summary-bar" class="val-summary-bar" style="margin-top:20px"></div>
     <ul class="val-list" id="val-list"></ul>
   </div>
 
@@ -291,24 +1095,45 @@
     <button class="btn btn-primary btn-lg" id="btn-to-export" onclick="goToStep(4)" disabled>
       WXR exportieren →
     </button>
-    <span id="val-block-msg" style="font-size:13px;color:var(--red);font-weight:600"></span>
+    <span id="val-block-msg" style="font-size:13px;color:var(--red);font-weight:700"></span>
   </div>
 </div>
 
 <!-- ══════════ STEP 4: EXPORT ══════════ -->
 <div class="page" id="page-4">
+
+  <div class="page-hero">
+    <h1>WXR <span>exportieren</span></h1>
+    <p>Lade die fertige WXR-Datei herunter und importiere sie direkt in WordPress.</p>
+  </div>
+
   <div class="card">
-    <h2>📦 WXR Export</h2>
-    <div class="alert alert-info">
-      ℹ️ <div>
-        <strong>Import in WordPress (4 Schritte):</strong><br>
-        1. WXR-Datei herunterladen<br>
-        2. WP Admin → Werkzeuge → Importieren → WordPress<br>
-        3. „WordPress Importer" Plugin installieren (falls noch nicht vorhanden)<br>
-        4. wg-migration-export.xml hochladen → Autor zuweisen → Import starten
+    <div class="card-title">
+      <div class="card-title-icon">📦</div>
+      Import in WordPress – 4 Schritte
+    </div>
+
+    <div class="export-steps">
+      <div class="export-step-item">
+        <div class="export-step-num">1</div>
+        <div class="export-step-text">WXR-Datei herunterladen</div>
+      </div>
+      <div class="export-step-item">
+        <div class="export-step-num">2</div>
+        <div class="export-step-text">WP Admin → Werkzeuge → Importieren → WordPress</div>
+      </div>
+      <div class="export-step-item">
+        <div class="export-step-num">3</div>
+        <div class="export-step-text">„WordPress Importer" Plugin installieren (falls nötig)</div>
+      </div>
+      <div class="export-step-item">
+        <div class="export-step-num">4</div>
+        <div class="export-step-text">wg-migration-export.xml hochladen → Autor zuweisen → Import starten</div>
       </div>
     </div>
-    <div id="export-summary" style="margin-top:16px"></div>
+
+    <div id="export-summary"></div>
+
     <div class="btn-actions">
       <button class="btn btn-primary btn-lg" onclick="downloadWXR()">
         📥 wg-migration-export.xml herunterladen
@@ -316,6 +1141,7 @@
       <button class="btn btn-secondary" onclick="copyWXR()">📋 XML kopieren</button>
     </div>
   </div>
+
   <div class="btn-actions">
     <button class="btn btn-secondary" onclick="goToStep(3)">← Zurück</button>
   </div>
@@ -837,7 +1663,7 @@ function renderMappingStep() {
       <td style="font-family:monospace;font-weight:700;color:var(--gray-700)">${id}</td>
       <td style="font-size:12px;color:var(--gray-500)">${lessonCount} Lektion${lessonCount!==1?'en':''}</td>
       <td>
-        <select id="map-${id}" style="width:100%;padding:6px 8px;border:1px solid var(--gray-300);border-radius:6px;font-size:13px">
+        <select id="map-${id}" style="width:100%;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;background:white;color:var(--gray-700)">
           <option value="">— bitte zuordnen —</option>
           ${optionsHtml}
         </select>
@@ -849,14 +1675,14 @@ function renderMappingStep() {
     <table style="width:100%;border-collapse:collapse;font-size:13px">
       <thead>
         <tr>
-          <th style="text-align:left;padding:8px 12px;background:var(--gray-50);border-bottom:2px solid var(--gray-200);width:80px">Sektion-ID</th>
-          <th style="text-align:left;padding:8px 12px;background:var(--gray-50);border-bottom:2px solid var(--gray-200);width:100px">Lektionen</th>
-          <th style="text-align:left;padding:8px 12px;background:var(--gray-50);border-bottom:2px solid var(--gray-200)">Zuordnen zu Sektion</th>
+          <th style="text-align:left;padding:10px 14px;background:var(--gray-50);border-bottom:2px solid var(--gray-200);width:80px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--gray-500)">Sektion-ID</th>
+          <th style="text-align:left;padding:10px 14px;background:var(--gray-50);border-bottom:2px solid var(--gray-200);width:110px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--gray-500)">Lektionen</th>
+          <th style="text-align:left;padding:10px 14px;background:var(--gray-50);border-bottom:2px solid var(--gray-200);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--gray-500)">Zuordnen zu Sektion</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
     </table>
-    <div style="font-size:12px;color:var(--gray-500);margin-top:12px">
+    <div style="font-size:12px;color:var(--gray-400);margin-top:12px;padding:0 4px">
       ${unresolvedIds.length} IDs · ${rawLessons.filter(l=>unresolvedIds.includes((l.sectionId||'').trim())).length} Lektionen betroffen
     </div>`;
 
@@ -923,15 +1749,14 @@ const PRODUCT_TYPES = new Set(['memberpressproduct','product','llms_membership']
 function onMainDragOver(e) {
   e.preventDefault();
   const z = document.getElementById('zone-main');
-  z.style.borderColor = 'var(--green)';
-  z.style.background  = 'var(--green-light)';
+  z.classList.add('drag-over');
   document.getElementById('main-icon').textContent = '📥';
 }
 function onMainDragLeave() {
   const z = document.getElementById('zone-main');
-  z.style.borderColor = 'var(--gray-300)';
-  z.style.background  = 'var(--gray-50)';
-  document.getElementById('main-icon').textContent = '📂';
+  z.classList.remove('drag-over');
+  const allReady = ['lessons','kurse','angebote'].every(k => S.files[k]);
+  document.getElementById('main-icon').textContent = allReady ? '✅' : '📂';
 }
 function onMainDrop(e) {
   e.preventDefault();
@@ -1014,27 +1839,23 @@ function readAndProcess(file) {
 }
 
 function markSlot(slot, postType, count) {
-  const icons = { lessons:'📄', kurse:'🗂️', angebote:'💼' };
   document.getElementById('icon-' + slot).textContent   = '✅';
   document.getElementById('status-' + slot).textContent = `${count} Einträge (${postType})`;
-  document.getElementById('card-' + slot).style.border  = '1.5px solid var(--green)';
-  document.getElementById('card-' + slot).style.background = 'var(--green-light)';
+  document.getElementById('card-' + slot).classList.add('loaded');
 }
 
 function updateTermStatus(count) {
-  const el = document.getElementById('status-terms');
-  const ic = document.getElementById('icon-terms');
+  const el   = document.getElementById('status-terms');
+  const ic   = document.getElementById('icon-terms');
   const card = document.getElementById('card-terms');
   if (count > 0) {
     ic.textContent  = '✅';
-    el.textContent  = `${count} Term-Definitionen gefunden – Sektions-Zuordnung funktioniert vollständig`;
-    card.style.border = '1.5px solid var(--green)';
-    card.style.background = 'var(--green-light)';
+    el.textContent  = `${count} Term-Definitionen gefunden – Sektions-Zuordnung vollständig automatisch`;
+    card.classList.add('loaded');
   } else {
     ic.textContent  = '⚠️';
-    el.innerHTML    = `Keine Term-Definitionen gefunden. <strong>Bitte "Alle Inhalte" aus WordPress exportieren</strong>, nicht nur einzelne Post-Typen – sonst können Sektionen nicht zugeordnet werden.`;
-    card.style.border = '1.5px solid #f59e0b';
-    card.style.background = '#fffbeb';
+    el.innerHTML    = `Keine Term-Definitionen. <strong>Bitte „Alle Inhalte" exportieren</strong> – sonst manuell zuordnen.`;
+    card.classList.add('warn');
   }
 }
 
@@ -1043,17 +1864,16 @@ function checkReady() {
   document.getElementById('btn-next-1').disabled = !allReady;
   const hintEl = document.getElementById('upload-hint');
   if (allReady) {
-    hintEl.textContent      = '✅ Alle Inhalte erkannt – bereit!';
-    hintEl.style.color      = 'var(--green-dark)';
-    hintEl.style.fontWeight = '600';
-    document.getElementById('zone-main').style.borderColor = 'var(--green)';
-    document.getElementById('zone-main').style.background  = 'var(--green-light)';
+    hintEl.textContent = '✅ Alle Inhalte erkannt – bereit!';
+    hintEl.classList.add('ready');
+    const z = document.getElementById('zone-main');
+    z.style.borderColor = 'var(--green)';
+    z.style.background  = 'var(--green-light)';
     document.getElementById('main-icon').textContent = '✅';
   } else {
     const n = ['lessons','kurse','angebote'].filter(k=>S.files[k]).length;
-    hintEl.textContent      = n ? `${n} von 3 Typen erkannt …` : 'Bitte XML-Datei hochladen';
-    hintEl.style.color      = 'var(--gray-500)';
-    hintEl.style.fontWeight = 'normal';
+    hintEl.textContent = n ? `${n} von 3 Typen erkannt …` : 'Bitte XML-Datei hochladen';
+    hintEl.classList.remove('ready');
   }
 }
 
@@ -1099,7 +1919,7 @@ function renderPreview() {
         </div>`;
       }).join('');
       const total = lessonsIn(course.slug);
-      return `<div style="margin-bottom:18px">
+      return `<div style="margin-bottom:20px">
         <div class="cat-course-row">📚 ${esc(course.name)}
           <span class="tag tag-green">${total} Lektionen gesamt</span>
           <span style="font-size:11px;color:var(--gray-400);font-family:monospace">${esc(course.slug)}</span>
@@ -1116,11 +1936,11 @@ function renderPreview() {
         <td><strong>${esc(l.title)}</strong></td>
         <td>${l.categories[0] ? `<span class="tag tag-blue">${esc(l.categories[0].name)}</span>` : '<span class="tag tag-red">⚠️ fehlt</span>'}</td>
         <td>${l.categories[1] ? `<span class="tag tag-green">${esc(l.categories[1].name)}</span>` : '—'}</td>
-        <td style="font-family:monospace">${l.menu_order}</td>
+        <td class="mono">${l.menu_order}</td>
         <td>${l._hasQuiz ? '<span class="tag tag-orange">✓ Quiz</span>' : '<span class="tag tag-gray">–</span>'}</td>
-        <td style="font-family:monospace;font-size:11px">${esc(l.slug)}</td>
+        <td class="mono" style="font-size:11px">${esc(l.slug)}</td>
       </tr>`).join('')
-    : '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-400)">Keine Lektionen gefunden</td></tr>';
+    : '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--gray-400)">Keine Lektionen gefunden</td></tr>';
 
   // ── Angebote Table ─────────────────────────────
   document.getElementById('tbody-angebote-prev').innerHTML = products.length
@@ -1128,10 +1948,10 @@ function renderPreview() {
         <td style="color:var(--gray-400);font-size:11px">${i+1}</td>
         <td><strong>${esc(p.title)}</strong></td>
         <td><span class="tag tag-blue">wg_angebot</span></td>
-        <td style="font-family:monospace;font-size:11px">${esc(p.slug)}</td>
+        <td class="mono" style="font-size:11px">${esc(p.slug)}</td>
         <td style="font-size:11px;color:var(--gray-500)">${Object.keys(p.postmeta).length} Felder</td>
       </tr>`).join('')
-    : '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--gray-400)">Keine Angebote gefunden</td></tr>';
+    : '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--gray-400)">Keine Angebote gefunden</td></tr>';
 }
 
 function showTab(id, el) {
@@ -1180,9 +2000,9 @@ function prepareExport() {
   S.wxrContent = generateWXR(S.categories, S.transformedLessons, S.transformedProducts);
   const kb = Math.round(S.wxrContent.length / 1024);
   document.getElementById('export-summary').innerHTML = `
-    <div class="alert alert-success">
+    <div class="alert alert-success" style="margin-bottom:0">
       ✅ <div>
-        <strong>Export fertig:</strong>
+        <strong>Export fertig!</strong> &nbsp;
         ${S.transformedLessons.length} Lektionen &nbsp;·&nbsp;
         ${S.transformedProducts.length} Angebote &nbsp;·&nbsp;
         ${S.categories.length} Kategorien &nbsp;·&nbsp;
