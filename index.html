@@ -120,49 +120,67 @@
     <h2>📁 Kursdateien hochladen</h2>
     <p>Exportiere deine Kursdateien aus der alten Plattform und ziehe sie hier rein – egal wie sie heißen, das Tool erkennt alles automatisch.</p>
 
+    <!-- How-to export instruction -->
+    <div class="alert alert-info" style="margin-top:20px">
+      ℹ️ <div>
+        <strong>So exportierst du aus WordPress:</strong><br>
+        WP Admin → <strong>Werkzeuge → Exportieren → Alle Inhalte → Exportieren</strong><br>
+        <span style="font-size:12px;opacity:.85">Du bekommst eine einzelne XML-Datei – die lädst du hier hoch.</span>
+      </div>
+    </div>
+
     <!-- Big single drop zone -->
     <div id="zone-main"
-         style="border:2px dashed var(--gray-300);border-radius:12px;padding:48px 24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--gray-50);margin-top:20px"
+         style="border:2px dashed var(--gray-300);border-radius:12px;padding:56px 24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--gray-50);margin-top:16px"
          onclick="document.getElementById('file-multi').click()"
          ondragover="onMainDragOver(event)"
          ondragleave="onMainDragLeave()"
          ondrop="onMainDrop(event)">
       <input type="file" id="file-multi" accept=".xml" multiple style="display:none" onchange="handleMultiFiles(this.files)">
-      <div style="font-size:48px;margin-bottom:12px" id="main-icon">📂</div>
-      <div style="font-size:16px;font-weight:700;color:var(--gray-800);margin-bottom:6px">XML-Dateien hier reinziehen</div>
-      <div style="font-size:13px;color:var(--gray-500)">oder klicken zum Auswählen – mehrere Dateien gleichzeitig möglich</div>
+      <div style="font-size:52px;margin-bottom:14px" id="main-icon">📂</div>
+      <div style="font-size:17px;font-weight:700;color:var(--gray-800);margin-bottom:6px">XML-Datei hier reinziehen</div>
+      <div style="font-size:13px;color:var(--gray-500)">oder klicken zum Auswählen</div>
     </div>
 
-    <!-- Detection status cards -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px">
+    <!-- Detection status cards (shown after file loaded) -->
+    <div id="status-cards" style="display:none;margin-top:20px">
+      <div style="font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:10px">Erkannte Inhalte:</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
 
-      <div id="card-lessons" style="border:1.5px solid var(--gray-200);border-radius:10px;padding:16px;background:var(--gray-50)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-          <span id="icon-lessons" style="font-size:20px">⏳</span>
-          <span style="font-size:13px;font-weight:700;color:var(--gray-700)">Lektionen</span>
+        <div id="card-lessons" style="border:1.5px solid var(--gray-200);border-radius:10px;padding:16px;background:var(--gray-50)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span id="icon-lessons" style="font-size:20px">⏳</span>
+            <span style="font-size:13px;font-weight:700;color:var(--gray-700)">Lektionen</span>
+          </div>
+          <div id="status-lessons" style="font-size:12px;color:var(--gray-500);margin-top:4px">Nicht gefunden</div>
         </div>
-        <div style="font-size:11px;color:var(--gray-500);font-family:monospace">mpcs-lesson</div>
-        <div id="status-lessons" style="font-size:12px;color:var(--gray-500);margin-top:4px">Noch nicht erkannt</div>
+
+        <div id="card-kurse" style="border:1.5px solid var(--gray-200);border-radius:10px;padding:16px;background:var(--gray-50)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span id="icon-kurse" style="font-size:20px">⏳</span>
+            <span style="font-size:13px;font-weight:700;color:var(--gray-700)">Kurse & Sektionen</span>
+          </div>
+          <div id="status-kurse" style="font-size:12px;color:var(--gray-500);margin-top:4px">Nicht gefunden</div>
+        </div>
+
+        <div id="card-angebote" style="border:1.5px solid var(--gray-200);border-radius:10px;padding:16px;background:var(--gray-50)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span id="icon-angebote" style="font-size:20px">⏳</span>
+            <span style="font-size:13px;font-weight:700;color:var(--gray-700)">Angebote</span>
+          </div>
+          <div id="status-angebote" style="font-size:12px;color:var(--gray-500);margin-top:4px">Nicht gefunden</div>
+        </div>
+
       </div>
 
-      <div id="card-kurse" style="border:1.5px solid var(--gray-200);border-radius:10px;padding:16px;background:var(--gray-50)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-          <span id="icon-kurse" style="font-size:20px">⏳</span>
-          <span style="font-size:13px;font-weight:700;color:var(--gray-700)">Kurse & Sektionen</span>
+      <!-- Term mapping status -->
+      <div id="card-terms" style="border:1.5px solid var(--gray-200);border-radius:10px;padding:14px;background:var(--gray-50);margin-top:12px;display:flex;align-items:center;gap:10px">
+        <span id="icon-terms" style="font-size:20px">⏳</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--gray-700)">Sektion-Zuordnung (Term-Definitionen)</div>
+          <div id="status-terms" style="font-size:12px;color:var(--gray-500);margin-top:2px">Wird geprüft…</div>
         </div>
-        <div style="font-size:11px;color:var(--gray-500);font-family:monospace">mpcs-course</div>
-        <div id="status-kurse" style="font-size:12px;color:var(--gray-500);margin-top:4px">Noch nicht erkannt</div>
       </div>
-
-      <div id="card-angebote" style="border:1.5px solid var(--gray-200);border-radius:10px;padding:16px;background:var(--gray-50)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-          <span id="icon-angebote" style="font-size:20px">⏳</span>
-          <span style="font-size:13px;font-weight:700;color:var(--gray-700)">Angebote</span>
-        </div>
-        <div style="font-size:11px;color:var(--gray-500);font-family:monospace">memberpressproduct</div>
-        <div id="status-angebote" style="font-size:12px;color:var(--gray-500);margin-top:4px">Noch nicht erkannt</div>
-      </div>
-
     </div>
 
     <div class="alert alert-success" style="margin-top:18px">
@@ -329,17 +347,18 @@ function getItems(doc, postType) {
 // ═══════════════════════════════════════════════════
 function buildSectionMap(sectionsDoc) {
   const sectionMap   = new Map();
-  const termIdToSlug = new Map();
+  // Start with already-collected termIdToSlug from upload phase
+  const termIdToSlug = new Map(S.termIdToSlug);
 
-  // 1. Parse wp:term elements → numeric termId → slug
+  // 1. Parse wp:term elements from THIS doc too (full export case)
   sectionsDoc.querySelectorAll('term').forEach(term => {
     const taxonomy = cdata(term.querySelector('term_taxonomy'));
-    if (taxonomy === 'mpcs-course-categories') {
+    if (taxonomy && taxonomy.toLowerCase().includes('course')) {
       const termId   = cdata(term.querySelector('term_id'));
       const termSlug = cdata(term.querySelector('term_slug'));
       if (termId && termSlug) {
         termIdToSlug.set(termId,   termSlug);
-        termIdToSlug.set(termSlug, termSlug); // identity: slug→slug
+        termIdToSlug.set(termSlug, termSlug);
       }
     }
   });
@@ -720,26 +739,19 @@ function goToStep(n) {
 }
 
 // ═══════════════════════════════════════════════════
-// UPLOAD – Auto-Erkennung
+// UPLOAD – Single-File Auto-Erkennung + Term-Extraktion
 // ═══════════════════════════════════════════════════
 
-// Mapping: post_type im XML → interner Slot-Name
-const TYPE_MAP = {
-  'mpcs-lesson':          'lessons',
-  'mpcs-course':          'kurse',
-  'memberpressproduct':   'angebote',
-  // Erweiterbar für weitere Plattformen:
-  'sfwd-lessons':         'lessons',   // LearnDash
-  'sfwd-courses':         'kurse',     // LearnDash
-  'lesson':               'lessons',   // LifterLMS
-  'course':               'kurse',     // LifterLMS
-};
+// post_type → interner Slot
+const LESSON_TYPES  = new Set(['mpcs-lesson','sfwd-lessons','lesson','ld-lesson']);
+const COURSE_TYPES  = new Set(['mpcs-course','sfwd-courses','course','ld-course']);
+const PRODUCT_TYPES = new Set(['memberpressproduct','product','llms_membership']);
 
 function onMainDragOver(e) {
   e.preventDefault();
   const z = document.getElementById('zone-main');
-  z.style.borderColor     = 'var(--green)';
-  z.style.background      = 'var(--green-light)';
+  z.style.borderColor = 'var(--green)';
+  z.style.background  = 'var(--green-light)';
   document.getElementById('main-icon').textContent = '📥';
 }
 function onMainDragLeave() {
@@ -757,44 +769,68 @@ function onMainDrop(e) {
 function handleMultiFiles(fileList) {
   hideUploadError();
   Array.from(fileList).forEach(file => {
-    if (!file.name.endsWith('.xml') && !file.type.includes('xml')) {
-      showUploadError(`"${file.name}" ist keine XML-Datei – übersprungen.`);
+    if (!file.name.toLowerCase().endsWith('.xml')) {
+      showUploadError(`"${file.name}" ist keine XML-Datei.`);
       return;
     }
-    readAndAutoDetect(file);
+    readAndProcess(file);
   });
 }
 
-function readAndAutoDetect(file) {
+function readAndProcess(file) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
       const doc = new DOMParser().parseFromString(e.target.result, 'application/xml');
       if (doc.querySelector('parsererror'))
-        throw new Error(`"${file.name}" enthält ungültiges XML.`);
+        throw new Error(`"${file.name}" enthält ungültiges XML – bitte prüfen.`);
 
-      // Collect all post_types in this file
-      const foundTypes = [...new Set(
-        Array.from(doc.querySelectorAll('post_type'))
-          .map(el => el.textContent.trim())
-          .filter(Boolean)
-      )];
+      // Count items per post_type
+      const typeCounts = {};
+      doc.querySelectorAll('post_type').forEach(el => {
+        const t = el.textContent.trim();
+        if (t) typeCounts[t] = (typeCounts[t]||0) + 1;
+      });
 
-      // Find which slot this file belongs to
-      let detectedSlot = null;
-      let detectedType = null;
-      for (const pt of foundTypes) {
-        if (TYPE_MAP[pt]) { detectedSlot = TYPE_MAP[pt]; detectedType = pt; break; }
+      // Assign to slots
+      let assigned = 0;
+      for (const [pt, count] of Object.entries(typeCounts)) {
+        if (LESSON_TYPES.has(pt)  && !S.files.lessons)  { S.files.lessons  = doc; markSlot('lessons',  pt, count); assigned++; }
+        if (COURSE_TYPES.has(pt)  && !S.files.kurse)    { S.files.kurse    = doc; markSlot('kurse',    pt, count); assigned++; }
+        if (PRODUCT_TYPES.has(pt) && !S.files.angebote) { S.files.angebote = doc; markSlot('angebote', pt, count); assigned++; }
       }
 
-      if (!detectedSlot) {
-        showUploadError(`"${file.name}": Kein bekannter Kurs-Typ gefunden (gefunden: ${foundTypes.slice(0,3).join(', ')||'leer'}). Datei wird ignoriert.`);
-        return;
-      }
+      // If one big "all content" export: same doc covers all three
+      const types = Object.keys(typeCounts);
+      const hasLessons  = types.some(t => LESSON_TYPES.has(t));
+      const hasCourses  = types.some(t => COURSE_TYPES.has(t));
+      const hasProducts = types.some(t => PRODUCT_TYPES.has(t));
+      if (hasLessons  && !S.files.lessons)  { S.files.lessons  = doc; markSlot('lessons',  types.find(t=>LESSON_TYPES.has(t)),  typeCounts[types.find(t=>LESSON_TYPES.has(t))]); }
+      if (hasCourses  && !S.files.kurse)    { S.files.kurse    = doc; markSlot('kurse',    types.find(t=>COURSE_TYPES.has(t)),  typeCounts[types.find(t=>COURSE_TYPES.has(t))]); }
+      if (hasProducts && !S.files.angebote) { S.files.angebote = doc; markSlot('angebote', types.find(t=>PRODUCT_TYPES.has(t)), typeCounts[types.find(t=>PRODUCT_TYPES.has(t))]); }
 
-      const count = foundTypes.filter(t => t === detectedType).length;
-      S.files[detectedSlot] = doc;
-      markSlotReady(detectedSlot, file.name, count, detectedType);
+      // Extract term definitions (the missing piece for section ID mapping)
+      let termCount = 0;
+      doc.querySelectorAll('term').forEach(term => {
+        const taxonomy = cdata(term.querySelector('term_taxonomy'));
+        if (taxonomy && taxonomy.toLowerCase().includes('course')) {
+          const termId   = cdata(term.querySelector('term_id'));
+          const termSlug = cdata(term.querySelector('term_slug'));
+          if (termId && termSlug) {
+            S.termIdToSlug.set(termId,   termSlug);
+            S.termIdToSlug.set(termSlug, termSlug);
+            termCount++;
+          }
+        }
+      });
+
+      // Show status cards
+      document.getElementById('status-cards').style.display = 'block';
+      updateTermStatus(termCount);
+
+      if (!hasLessons && !hasCourses && !hasProducts) {
+        showUploadError(`"${file.name}": Keine bekannten Kurs-Inhalte gefunden. Bitte "Alle Inhalte" aus WordPress exportieren.`);
+      }
 
     } catch(err) {
       showUploadError(err.message);
@@ -804,32 +840,46 @@ function readAndAutoDetect(file) {
   reader.readAsText(file, 'UTF-8');
 }
 
-function markSlotReady(slot, filename, count, detectedType) {
-  const icons   = { lessons: '📄', kurse: '🗂️', angebote: '💼' };
-  const labels  = { lessons: 'Lektionen', kurse: 'Kurse & Sektionen', angebote: 'Angebote' };
-
-  document.getElementById('icon-' + slot).textContent    = '✅';
-  document.getElementById('status-' + slot).textContent  = `${filename} · ${count} Einträge erkannt`;
-  document.getElementById('card-' + slot).style.border   = '1.5px solid var(--green)';
+function markSlot(slot, postType, count) {
+  const icons = { lessons:'📄', kurse:'🗂️', angebote:'💼' };
+  document.getElementById('icon-' + slot).textContent   = '✅';
+  document.getElementById('status-' + slot).textContent = `${count} Einträge (${postType})`;
+  document.getElementById('card-' + slot).style.border  = '1.5px solid var(--green)';
   document.getElementById('card-' + slot).style.background = 'var(--green-light)';
+}
+
+function updateTermStatus(count) {
+  const el = document.getElementById('status-terms');
+  const ic = document.getElementById('icon-terms');
+  const card = document.getElementById('card-terms');
+  if (count > 0) {
+    ic.textContent  = '✅';
+    el.textContent  = `${count} Term-Definitionen gefunden – Sektions-Zuordnung funktioniert vollständig`;
+    card.style.border = '1.5px solid var(--green)';
+    card.style.background = 'var(--green-light)';
+  } else {
+    ic.textContent  = '⚠️';
+    el.innerHTML    = `Keine Term-Definitionen gefunden. <strong>Bitte "Alle Inhalte" aus WordPress exportieren</strong>, nicht nur einzelne Post-Typen – sonst können Sektionen nicht zugeordnet werden.`;
+    card.style.border = '1.5px solid #f59e0b';
+    card.style.background = '#fffbeb';
+  }
 }
 
 function checkReady() {
   const allReady = ['lessons','kurse','angebote'].every(k => S.files[k]);
   document.getElementById('btn-next-1').disabled = !allReady;
-
-  const found   = ['lessons','kurse','angebote'].filter(k => S.files[k]).length;
-  const hintEl  = document.getElementById('upload-hint');
+  const hintEl = document.getElementById('upload-hint');
   if (allReady) {
-    hintEl.textContent = '✅ Alle 3 Dateitypen erkannt – bereit!';
-    hintEl.style.color = 'var(--green-dark)';
+    hintEl.textContent      = '✅ Alle Inhalte erkannt – bereit!';
+    hintEl.style.color      = 'var(--green-dark)';
     hintEl.style.fontWeight = '600';
     document.getElementById('zone-main').style.borderColor = 'var(--green)';
     document.getElementById('zone-main').style.background  = 'var(--green-light)';
     document.getElementById('main-icon').textContent = '✅';
   } else {
-    hintEl.textContent = `${found} von 3 Dateitypen erkannt …`;
-    hintEl.style.color = 'var(--gray-500)';
+    const n = ['lessons','kurse','angebote'].filter(k=>S.files[k]).length;
+    hintEl.textContent      = n ? `${n} von 3 Typen erkannt …` : 'Bitte XML-Datei hochladen';
+    hintEl.style.color      = 'var(--gray-500)';
     hintEl.style.fontWeight = 'normal';
   }
 }
