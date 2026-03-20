@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>webGefährte – Kurs-Migration Tool</title>
+<style>
+  :root {
+    --green: #92BB20; --green-dark: #7a9e1a; --green-light: #f0f6e0;
+    --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+    --gray-300: #d1d5db; --gray-500: #6b7280; --gray-600: #4b5563;
+    --gray-700: #374151; --gray-800: #1f2937; --gray-900: #111827;
+    --red: #ef4444; --orange: #f97316; --blue: #3b82f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gray-50); color: var(--gray-800); min-height: 100vh; }
+  .header { background: white; border-bottom: 2px solid var(--green); padding: 16px 32px; display: flex; align-items: center; gap: 12px; }
+  .header-logo { width: 36px; height: 36px; background: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .header-logo svg { fill: white; }
+  .header h1 { font-size: 20px; font-weight: 700; color: var(--gray-900); }
+  .header-sub { font-size: 13px; color: var(--gray-600); margin-top: 2px; }
+  .steps { background: white; border-bottom: 1px solid var(--gray-200); padding: 16px 32px; display: flex; gap: 0; overflow-x: auto; }
+  .step { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--gray-600); flex: 1; white-space: nowrap; }
+  .step.active { background: var(--green-light); color: var(--green-dark); font-weight: 600; }
+  .step.done { color: var(--green-dark); }
+  .step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--gray-200); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .step.active .step-num, .step.done .step-num { background: var(--green); color: white; }
+  .step-sep { color: var(--gray-300); font-size: 20px; display: flex; align-items: center; padding: 0 2px; }
+  .main { max-width: 1100px; margin: 32px auto; padding: 0 24px 80px; }
+  .card { background: white; border-radius: 12px; border: 1px solid var(--gray-200); padding: 24px; margin-bottom: 20px; }
+  .card h2 { font-size: 18px; font-weight: 700; color: var(--gray-900); margin-bottom: 6px; }
+  .card > p { font-size: 14px; color: var(--gray-600); }
+  .upload-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 20px; }
+  .upload-zone { border: 2px dashed var(--gray-300); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all .2s; background: var(--gray-50); }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--green); background: var(--green-light); }
+  .upload-zone.loaded { border-color: var(--green); background: var(--green-light); border-style: solid; }
+  .upload-zone .uz-icon { font-size: 30px; margin-bottom: 6px; }
+  .upload-zone h3 { font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 3px; }
+  .upload-zone p { font-size: 12px; color: var(--gray-500); }
+  .upload-zone .badge { display: inline-block; background: var(--green); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-top: 6px; }
+  .upload-zone.optional { border-style: dashed; opacity: .85; }
+  .optional-label { display: inline-block; background: var(--orange); color: white; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; margin-bottom: 4px; }
+  .file-input { display: none; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; }
+  .btn-primary { background: var(--green); color: white; }
+  .btn-primary:hover { background: var(--green-dark); }
+  .btn-primary:disabled { background: var(--gray-300); cursor: not-allowed; }
+  .btn-secondary { background: white; color: var(--gray-700); border: 1px solid var(--gray-300); }
+  .btn-secondary:hover { background: var(--gray-100); }
+  .btn-lg { padding: 14px 28px; font-size: 16px; }
+  .btn-actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+  .table-wrap { overflow-x: auto; margin-top: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: var(--gray-50); padding: 10px 12px; text-align: left; font-weight: 600; color: var(--gray-600); border-bottom: 2px solid var(--gray-200); white-space: nowrap; }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); }
+  tr:hover td { background: var(--gray-50); }
+  .tag { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .tag-green { background: var(--green-light); color: var(--green-dark); }
+  .tag-blue { background: #eff6ff; color: #1d4ed8; }
+  .tag-orange { background: #fff7ed; color: #c2410c; }
+  .tag-red { background: #fef2f2; color: #b91c1c; }
+  .tag-gray { background: var(--gray-100); color: var(--gray-600); }
+  .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 16px; }
+  .stat-card { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 10px; padding: 14px; }
+  .stat-num { font-size: 26px; font-weight: 700; color: var(--green-dark); }
+  .stat-label { font-size: 12px; color: var(--gray-600); margin-top: 3px; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--gray-200); overflow-x: auto; }
+  .tab { padding: 10px 14px; font-size: 13px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--gray-600); white-space: nowrap; }
+  .tab.active { color: var(--green-dark); border-bottom-color: var(--green); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; display: flex; gap: 10px; line-height: 1.5; }
+  .alert-info { background: #eff6ff; color: #1e40af; border-left: 4px solid var(--blue); }
+  .alert-success { background: var(--green-light); color: var(--green-dark); border-left: 4px solid var(--green); }
+  .alert-warn { background: #fffbeb; color: #92400e; border-left: 4px solid #f59e0b; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .output-box { background: #1e1e2e; color: #cdd6f4; font-family: 'Courier New', monospace; font-size: 11.5px; border-radius: 10px; padding: 16px; max-height: 380px; overflow: auto; white-space: pre; margin-top: 14px; line-height: 1.5; }
+  .progress-wrap { background: var(--gray-200); border-radius: 999px; height: 8px; overflow: hidden; margin-top: 8px; }
+  .progress-bar { background: var(--green); height: 100%; border-radius: 999px; transition: width .3s; }
+  .mapping-row { display: grid; grid-template-columns: 1fr 32px 1fr; gap: 8px; align-items: center; margin-bottom: 8px; padding: 10px 12px; background: var(--gray-50); border-radius: 8px; }
+  .mapping-src { font-size: 12px; font-family: monospace; color: #6b21a8; background: #faf5ff; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+  .mapping-arrow { text-align: center; color: var(--green); font-weight: bold; }
+  .field-group label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 5px; }
+  .field-group input, .field-group select { width: 100%; padding: 8px 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; }
+  .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+  .method-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+  .method-card { border: 2px solid var(--gray-200); border-radius: 10px; padding: 18px; cursor: pointer; transition: all .15s; }
+  .method-card:hover { border-color: var(--green); background: var(--green-light); }
+  .method-card.selected { border-color: var(--green); background: var(--green-light); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+  </div>
+  <div>
+    <h1>webGefährte – Kurs-Migration</h1>
+    <div class="header-sub">MemberPress Courses → WordPress Custom Platform (angebote CPT + vollständige Kursstruktur)</div>
+  </div>
+</div>
+
+<div class="steps" id="steps">
+  <div class="step active" data-step="1" onclick="goToStep(1)"><div class="step-num">1</div> Dateien</div>
+  <div class="step-sep">›</div>
+  <div class="step" data-step="2" onclick="goToStep(2)"><div class="step-num">2</div> Vorschau</div>
+  <div class="step-sep">›</div>
+  <div class="step" data-step="3" onclick="goToStep(3)"><div class="step-num">3</div> Mapping</div>
+  <div class="step-sep">›</div>
+  <div class="step" data-step="4" onclick="goToStep(4)"><div class="step-num">4</div> Generieren</div>
+</div>
+
+<div class="main">
+
+<!-- STEP 1 -->
+<div class="page active" id="page-1">
+  <div class="card">
+    <h2>📁 WordPress-Export-Dateien hochladen</h2>
+    <p>Lade die 4 WXR-XML-Dateien hoch. Die ersten 3 sind Pflicht, <em>Sections (mpcs-section)</em> ist optional aber empfohlen für vollständiges Kurs-Mapping.</p>
+
+    <div class="upload-grid">
+      <div class="upload-zone" id="zone-angebote" onclick="triggerFile('angebote')"
+           ondragover="onDragOver(event,'angebote')" ondragleave="onDragLeave('angebote')" ondrop="onDrop(event,'angebote')">
+        <input type="file" class="file-input" id="file-angebote" accept=".xml" onchange="loadFile('angebote',this)">
+        <div class="uz-icon" id="icon-angebote">💼</div>
+        <h3>Online-Angebote</h3>
+        <p id="status-angebote">memberpressproduct – Abonnements & Preise</p>
+        <div id="badge-angebote" style="display:none" class="badge">✓ geladen</div>
+      </div>
+
+      <div class="upload-zone" id="zone-kurse" onclick="triggerFile('kurse')"
+           ondragover="onDragOver(event,'kurse')" ondragleave="onDragLeave('kurse')" ondrop="onDrop(event,'kurse')">
+        <input type="file" class="file-input" id="file-kurse" accept=".xml" onchange="loadFile('kurse',this)">
+        <div class="uz-icon" id="icon-kurse">🗂️</div>
+        <h3>Kurse / Etappen</h3>
+        <p id="status-kurse">mpcs-course – Kursstruktur (Etappen)</p>
+        <div id="badge-kurse" style="display:none" class="badge">✓ geladen</div>
+      </div>
+
+      <div class="upload-zone" id="zone-lessons" onclick="triggerFile('lessons')"
+           ondragover="onDragOver(event,'lessons')" ondragleave="onDragLeave('lessons')" ondrop="onDrop(event,'lessons')">
+        <input type="file" class="file-input" id="file-lessons" accept=".xml" onchange="loadFile('lessons',this)">
+        <div class="uz-icon" id="icon-lessons">📄</div>
+        <h3>Lektionen</h3>
+        <p id="status-lessons">mpcs-lesson – Einzelne Lektionen</p>
+        <div id="badge-lessons" style="display:none" class="badge">✓ geladen</div>
+      </div>
+
+      <div class="upload-zone optional" id="zone-sections2" onclick="triggerFile('sections2')"
+           ondragover="onDragOver(event,'sections2')" ondragleave="onDragLeave('sections2')" ondrop="onDrop(event,'sections2')">
+        <input type="file" class="file-input" id="file-sections2" accept=".xml" onchange="loadFile('sections2',this)">
+        <div class="optional-label">EMPFOHLEN</div>
+        <div class="uz-icon" id="icon-sections2">📑</div>
+        <h3>Kurs-Sektionen</h3>
+        <p id="status-sections2">mpcs-section – Abschnitte innerhalb der Kurse</p>
+        <div id="badge-sections2" style="display:none" class="badge">✓ geladen</div>
+      </div>
+    </div>
+
+    <div class="alert alert-info" style="margin-top:18px">
+      ℹ️ <div><strong>So exportierst du mpcs-section aus WordPress:</strong><br>
+      WP Admin → Werkzeuge → Exportieren → <strong>Benutzerdefinierter Beitragstyp</strong> → <code>mpcs-section</code> auswählen → Exportieren. Falls dort nichts steht, hat dein System keine separaten Sektionen.</div>
+    </div>
+    <div class="alert alert-success" style="margin-top:0">
+      🔒 Alle Dateien werden nur lokal in deinem Browser verarbeitet – es werden keine Daten hochgeladen.
+    </div>
+
+    <div class="btn-actions">
+      <button class="btn btn-primary btn-lg" id="btn-next-1" onclick="goToStep(2)" disabled>
+        Weiter zur Vorschau →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 2 -->
+<div class="page" id="page-2">
+  <div class="card">
+    <h2>🔍 Erkannte Inhalte</h2>
+    <p>Vollständige Übersicht aller gefundenen Inhalte aus deinen Export-Dateien.</p>
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card"><div class="stat-num" id="stat-angebote">0</div><div class="stat-label">Angebote</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-kurse">0</div><div class="stat-label">Kurse (Etappen)</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-sektionen2">0</div><div class="stat-label">Kurs-Sektionen</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-lektionen">0</div><div class="stat-label">Lektionen</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Gesamt Posts</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('tab-angebote',this)">💼 Angebote</div>
+      <div class="tab" onclick="showTab('tab-kurse',this)">🗂️ Kurse</div>
+      <div class="tab" onclick="showTab('tab-sektionen2',this)">📑 Sektionen</div>
+      <div class="tab" onclick="showTab('tab-lektionen',this)">📄 Lektionen</div>
+    </div>
+
+    <div class="tab-content active" id="tab-angebote">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Titel</th><th>Preis (netto)</th><th>Period Type</th><th>→ Intervall</th><th>→ Zugang</th><th>→ Rechnungsstellung</th><th>MwSt 19%</th><th>Endpreis</th><th>Trial</th></tr></thead>
+          <tbody id="tbody-angebote"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-kurse">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Titel</th><th>Slug</th><th>Status</th><th>Alte ID</th></tr></thead>
+          <tbody id="tbody-kurse"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-sektionen2">
+      <div id="no-sections-hint" class="alert alert-warn">
+        ⚠️ Keine mpcs-section Datei hochgeladen. Die Lektionen referenzieren Sektions-IDs, die ohne diese Datei nicht remappt werden können. Bitte mpcs-section exportieren und hochladen.
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Titel</th><th>Slug</th><th>Kurs-ID (parent)</th><th>Status</th><th>Alte ID</th></tr></thead>
+          <tbody id="tbody-sektionen2"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-lektionen">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Titel</th><th>Slug</th><th>Sektion-ID (alt)</th><th>Reihenfolge</th><th>Status</th></tr></thead>
+          <tbody id="tbody-lektionen"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-actions">
+    <button class="btn btn-secondary" onclick="goToStep(1)">← Zurück</button>
+    <button class="btn btn-primary btn-lg" onclick="goToStep(3)">Weiter zum Mapping →</button>
+  </div>
+</div>
+
+<!-- STEP 3 -->
+<div class="page" id="page-3">
+  <div class="card">
+    <h2>🔗 Feld-Mapping: Angebote → angebote CPT</h2>
+    <p>Standardwerte für die Felder deines Custom Post Types. Die Preis-Berechnungen und Intervall-Mappings laufen automatisch.</p>
+    <div style="margin-top:16px">
+      <div class="mapping-row">
+        <div><div style="font-size:11px;color:var(--gray-500);margin-bottom:3px">MemberPress</div><span class="mapping-src">_mepr_product_price</span></div>
+        <div class="mapping-arrow">→</div>
+        <div class="field-group"><label>Zielfeld</label><input type="text" value="preis_netto" readonly style="background:#f9fafb;color:var(--gray-500)"></div>
+      </div>
+      <div class="mapping-row">
+        <div><div style="font-size:11px;color:var(--gray-500);margin-bottom:3px">MemberPress</div><span class="mapping-src">_mepr_product_period_type</span></div>
+        <div class="mapping-arrow">→</div>
+        <div class="field-group"><label>Mapping-Regel</label>
+          <select id="map-intervall">
+            <option value="auto">Automatisch: months→monatlich, years→jährlich, lifetime→ohne_intervall</option>
+            <option value="monatlich">Immer: monatlich</option>
+            <option value="jährlich">Immer: jährlich</option>
+          </select>
+        </div>
+      </div>
+      <div class="mapping-row">
+        <div><div style="font-size:11px;color:var(--gray-500);margin-bottom:3px">Standard</div><span class="mapping-src">mehrwertsteuer</span></div>
+        <div class="mapping-arrow">→</div>
+        <div class="field-group"><select id="map-mwst"><option value="19">19%</option><option value="0">0%</option></select></div>
+      </div>
+      <div class="mapping-row">
+        <div><div style="font-size:11px;color:var(--gray-500);margin-bottom:3px">Standard</div><span class="mapping-src">zahlungsform</span></div>
+        <div class="mapping-arrow">→</div>
+        <div class="field-group"><select id="map-zahlungsform"><option value="rechnung">Rechnung (manuelle Zahlung)</option><option value="sepa_ueberweisung">SEPA-Überweisung</option></select></div>
+      </div>
+      <div class="mapping-row">
+        <div><div style="font-size:11px;color:var(--gray-500);margin-bottom:3px">Standard</div><span class="mapping-src">type</span></div>
+        <div class="mapping-arrow">→</div>
+        <div class="field-group"><select id="map-type"><option value="abo">abo</option><option value="paket">paket</option><option value="digitales_produkt">digitales_produkt</option><option value="erweiterung">erweiterung</option></select></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⚙️ Ziel-CPT Namen</h2>
+    <div class="config-grid">
+      <div class="field-group"><label>CPT: Angebote</label><input type="text" id="cpt-angebote" value="angebote"></div>
+      <div class="field-group"><label>CPT: Kurse</label><input type="text" id="cpt-kurse" value="mpcs-course"></div>
+      <div class="field-group"><label>CPT: Sektionen</label><input type="text" id="cpt-sections2" value="mpcs-section"></div>
+      <div class="field-group"><label>CPT: Lektionen</label><input type="text" id="cpt-lektionen" value="mpcs-lesson"></div>
+    </div>
+    <div class="alert alert-warn" style="margin-top:14px">
+      ⚠️ Wenn MemberPress Courses auf der Zielseite installiert ist, CPT-Namen unverändert lassen.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🌐 WordPress REST API (für direkte Migration)</h2>
+    <div class="config-grid">
+      <div class="field-group"><label>WordPress URL</label><input type="text" id="wp-url" placeholder="https://deine-seite.de"></div>
+      <div class="field-group"><label>Benutzername</label><input type="text" id="wp-user" placeholder="admin"></div>
+      <div class="field-group" style="grid-column:1/-1"><label>Application Password (WP Admin → Benutzer → Profil → Anwendungspasswörter)</label><input type="text" id="wp-app-password" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx"></div>
+    </div>
+  </div>
+
+  <div class="btn-actions">
+    <button class="btn btn-secondary" onclick="goToStep(2)">← Zurück</button>
+    <button class="btn btn-primary btn-lg" onclick="generateAndGoTo4()">Plugin generieren →</button>
+  </div>
+</div>
+
+<!-- STEP 4 -->
+<div class="page" id="page-4">
+  <div class="card">
+    <h2>✅ Plugin bereit</h2>
+    <p>Wähle deine Migrationsmethode:</p>
+    <div class="method-selector">
+      <div class="method-card selected" id="mc-php" onclick="selectMethod('php')">
+        <div style="font-size:28px;margin-bottom:8px">🔌</div>
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:6px">PHP-Plugin</h3>
+        <p style="font-size:13px;color:var(--gray-600)">Datei in WordPress hochladen, aktivieren, einmal ausführen. Empfohlen.</p>
+        <span class="tag tag-green" style="margin-top:10px;display:inline-block">Empfohlen</span>
+      </div>
+      <div class="method-card" id="mc-rest" onclick="selectMethod('rest')">
+        <div style="font-size:28px;margin-bottom:8px">🌐</div>
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:6px">REST API direkt</h3>
+        <p style="font-size:13px;color:var(--gray-600)">Direkt aus diesem Browser per WordPress REST API. Braucht Application Password.</p>
+        <span class="tag tag-blue" style="margin-top:10px;display:inline-block">Fortgeschritten</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="panel-php">
+    <h2>📦 PHP-Plugin</h2>
+    <div class="alert alert-info">
+      ℹ️ <div><strong>Anleitung (5 Schritte):</strong><br>
+      1. PHP-Datei herunterladen<br>
+      2. WP Admin → Plugins → Plugin hochladen → wg-migration.php<br>
+      3. Aktivieren → Werkzeuge → wG Migration<br>
+      4. Optionen wählen → "Migration starten" klicken<br>
+      5. Nach Erfolg: Plugin deaktivieren &amp; löschen</div>
+    </div>
+    <div id="php-preview" class="output-box"></div>
+    <div class="btn-actions">
+      <button class="btn btn-primary btn-lg" onclick="downloadPlugin()">📥 wg-migration.php herunterladen</button>
+      <button class="btn btn-secondary" onclick="copyCode()">📋 Code kopieren</button>
+    </div>
+  </div>
+
+  <div class="card" id="panel-rest" style="display:none">
+    <h2>🌐 REST API Migration</h2>
+    <div id="rest-status-box"></div>
+    <div id="rest-progress-wrap" style="display:none">
+      <div style="font-size:13px;color:var(--gray-600);margin-bottom:4px" id="rest-progress-label">0 / 0</div>
+      <div class="progress-wrap"><div class="progress-bar" id="rest-progress" style="width:0%"></div></div>
+    </div>
+    <div id="rest-log" style="display:none;font-size:12px;margin-top:12px;max-height:320px;overflow:auto;font-family:monospace;background:#111827;color:#a3e635;padding:14px;border-radius:8px;line-height:1.6"></div>
+    <div class="btn-actions">
+      <button class="btn btn-primary btn-lg" id="btn-run-rest" onclick="runRestMigration()">🚀 Migration starten</button>
+    </div>
+  </div>
+
+  <div class="btn-actions">
+    <button class="btn btn-secondary" onclick="goToStep(3)">← Zurück</button>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ===== STATE =====
+const S = {
+  files: { lessons: null, angebote: null, kurse: null, sections2: null },
+  parsed: { angebote: [], kurse: [], sektionen2: [], lektionen: [] },
+  step: 1
+};
+let pluginCode = '';
+
+// ===== NAVIGATION =====
+function goToStep(n) {
+  const required = ['angebote', 'kurse', 'lessons'];
+  if (n >= 2 && required.some(k => !S.files[k])) {
+    alert('Bitte Angebote-, Kurse- und Lektionen-Dateien hochladen (die oberen 3).');
+    return;
+  }
+  if (n === 2) renderPreview();
+  S.step = n;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + n).classList.add('active');
+  document.querySelectorAll('.step').forEach(s => {
+    const sn = +s.dataset.step;
+    s.classList.toggle('active', sn === n);
+    s.classList.toggle('done', sn < n);
+  });
+  window.scrollTo(0, 0);
+}
+
+// ===== UPLOAD =====
+function triggerFile(type) { document.getElementById('file-' + type).click(); }
+function onDragOver(e, t) { e.preventDefault(); document.getElementById('zone-' + t).classList.add('drag-over'); }
+function onDragLeave(t) { document.getElementById('zone-' + t).classList.remove('drag-over'); }
+function onDrop(e, t) { e.preventDefault(); onDragLeave(t); const f = e.dataTransfer.files[0]; if (f) processFile(t, f); }
+function loadFile(type, input) { if (input.files[0]) processFile(type, input.files[0]); }
+
+function processFile(type, file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const doc = new DOMParser().parseFromString(e.target.result, 'application/xml');
+      if (doc.querySelector('parsererror')) throw new Error('XML-Fehler');
+      S.files[type] = doc;
+      document.getElementById('icon-' + type).textContent = '✅';
+      document.getElementById('status-' + type).textContent = file.name;
+      document.getElementById('badge-' + type).style.display = 'inline-block';
+      document.getElementById('zone-' + type).classList.add('loaded');
+    } catch(err) { alert('Datei-Fehler: ' + err.message); }
+    checkReady();
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function checkReady() {
+  document.getElementById('btn-next-1').disabled = !['angebote','kurse','lessons'].every(k => S.files[k]);
+}
+
+// ===== XML HELPERS =====
+const cdata = el => el ? el.textContent.trim() : '';
+function getMeta(item, key) {
+  for (const m of item.querySelectorAll('postmeta')) {
+    if (cdata(m.querySelector('meta_key')) === key) return cdata(m.querySelector('meta_value'));
+  }
+  return '';
+}
+function getItems(doc, postType) {
+  return Array.from(doc.querySelectorAll('item')).filter(i => cdata(i.querySelector('post_type')) === postType);
+}
+
+// ===== PARSE =====
+function parse() {
+  S.parsed = { angebote: [], kurse: [], sektionen2: [], lektionen: [] };
+
+  // Angebote
+  getItems(S.files.angebote, 'memberpressproduct').forEach(item => {
+    const price = parseFloat((getMeta(item,'_mepr_product_price')||'0').replace(',','.'));
+    const periodType = getMeta(item,'_mepr_product_period_type');
+    const trial = !!getMeta(item,'_mepr_product_trial');
+    const trialDays = getMeta(item,'_mepr_product_trial_days');
+    S.parsed.angebote.push({
+      id: cdata(item.querySelector('post_id')),
+      title: cdata(item.querySelector('title')),
+      slug: cdata(item.querySelector('post_name')),
+      status: cdata(item.querySelector('status')),
+      content: cdata(item.querySelector('encoded')),
+      price, periodType, trial, trialDays,
+      mapped: mapAngebot(price, periodType, trial, trialDays),
+    });
+  });
+
+  // Kurse
+  getItems(S.files.kurse, 'mpcs-course').forEach(item => {
+    S.parsed.kurse.push({
+      id: cdata(item.querySelector('post_id')),
+      title: cdata(item.querySelector('title')),
+      slug: cdata(item.querySelector('post_name')),
+      status: cdata(item.querySelector('status')),
+      content: cdata(item.querySelector('encoded')),
+      menuOrder: parseInt(getMeta(item,'_mpcs_course_menu_order')) || 0,
+      parent: cdata(item.querySelector('post_parent')),
+    });
+  });
+
+  // Sektionen (optional)
+  if (S.files.sections2) {
+    getItems(S.files.sections2, 'mpcs-section').forEach(item => {
+      S.parsed.sektionen2.push({
+        id: cdata(item.querySelector('post_id')),
+        title: cdata(item.querySelector('title')),
+        slug: cdata(item.querySelector('post_name')),
+        status: cdata(item.querySelector('status')),
+        content: cdata(item.querySelector('encoded')),
+        parent: cdata(item.querySelector('post_parent')),
+        menuOrder: parseInt(getMeta(item,'_mpcs_section_menu_order')) || 0,
+      });
+    });
+  }
+
+  // Lektionen
+  getItems(S.files.lessons, 'mpcs-lesson').forEach(item => {
+    S.parsed.lektionen.push({
+      id: cdata(item.querySelector('post_id')),
+      title: cdata(item.querySelector('title')),
+      slug: cdata(item.querySelector('post_name')),
+      status: cdata(item.querySelector('status')),
+      content: cdata(item.querySelector('encoded')),
+      sectionId: getMeta(item,'_mpcs_lesson_section_id'),
+      lessonOrder: parseInt(getMeta(item,'_mpcs_lesson_lesson_order')) || 0,
+    });
+  });
+}
+
+function mapAngebot(price, periodType, trial, trialDays) {
+  let intervall = 'ohne_intervall', rechnungsstellung = 'einmalig', zugang = 'lifetime';
+  if (periodType === 'months') { intervall = 'monatlich'; rechnungsstellung = 'wiederkehrend'; zugang = 'monat'; }
+  else if (periodType === 'years') { intervall = 'jährlich'; rechnungsstellung = 'wiederkehrend'; zugang = 'lifetime'; }
+  if (trial) zugang = 'trial';
+  const mwst = Math.round(price * 0.19 * 100) / 100;
+  const endpreis = Math.round((price + mwst) * 100) / 100;
+  return { intervall, rechnungsstellung, zugang, mwst_betrag: mwst, endpreis };
+}
+
+// ===== PREVIEW =====
+function renderPreview() {
+  parse();
+  const p = S.parsed;
+  const total = p.angebote.length + p.kurse.length + p.sektionen2.length + p.lektionen.length;
+  document.getElementById('stat-angebote').textContent = p.angebote.length;
+  document.getElementById('stat-kurse').textContent = p.kurse.length;
+  document.getElementById('stat-sektionen2').textContent = p.sektionen2.length;
+  document.getElementById('stat-lektionen').textContent = p.lektionen.length;
+  document.getElementById('stat-total').textContent = total;
+
+  // Angebote tab
+  const ta = document.getElementById('tbody-angebote');
+  ta.innerHTML = p.angebote.length ? p.angebote.map((a,i) => {
+    const m = a.mapped;
+    const mwstStr = a.price > 0 ? '+' + m.mwst_betrag.toFixed(2) + '€' : '-';
+    const endStr = a.price > 0 ? m.endpreis.toFixed(2) + '€' : '-';
+    return `<tr>
+      <td style="color:var(--gray-400);font-size:11px">${i+1}</td>
+      <td><strong>${esc(a.title)}</strong></td>
+      <td>${a.price > 0 ? a.price.toFixed(2) + ' €' : '<span class="tag tag-gray">0 / Gratis</span>'}</td>
+      <td><span class="tag tag-gray">${a.periodType||'—'}</span></td>
+      <td><span class="tag tag-blue">${m.intervall}</span></td>
+      <td><span class="tag tag-green">${m.zugang}</span></td>
+      <td><span class="tag tag-gray">${m.rechnungsstellung}</span></td>
+      <td>${mwstStr}</td>
+      <td><strong>${endStr}</strong></td>
+      <td>${a.trial ? `<span class="tag tag-orange">Trial ${a.trialDays}d</span>` : '-'}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="10" style="text-align:center;color:var(--gray-400);padding:20px">Keine memberpressproduct-Posts gefunden</td></tr>';
+
+  // Kurse tab
+  const tk = document.getElementById('tbody-kurse');
+  tk.innerHTML = p.kurse.length ? p.kurse.map((k,i) => `<tr>
+    <td style="color:var(--gray-400);font-size:11px">${i+1}</td>
+    <td><strong>${esc(k.title)}</strong></td>
+    <td style="font-family:monospace;font-size:11px">${esc(k.slug)}</td>
+    <td><span class="tag ${k.status==='publish'?'tag-green':'tag-orange'}">${k.status}</span></td>
+    <td style="font-family:monospace;color:var(--gray-400)">${k.id}</td>
+  </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--gray-400);padding:20px">Keine mpcs-course-Posts gefunden</td></tr>';
+
+  // Sektionen2 tab
+  const hint = document.getElementById('no-sections-hint');
+  const ts = document.getElementById('tbody-sektionen2');
+  if (p.sektionen2.length) {
+    hint.style.display = 'none';
+    ts.innerHTML = p.sektionen2.map((s,i) => `<tr>
+      <td style="color:var(--gray-400);font-size:11px">${i+1}</td>
+      <td><strong>${esc(s.title)}</strong></td>
+      <td style="font-family:monospace;font-size:11px">${esc(s.slug)}</td>
+      <td style="font-family:monospace;color:var(--gray-400)">${s.parent||'—'}</td>
+      <td><span class="tag ${s.status==='publish'?'tag-green':'tag-orange'}">${s.status}</span></td>
+      <td style="font-family:monospace;color:var(--gray-400)">${s.id}</td>
+    </tr>`).join('');
+  } else {
+    hint.style.display = 'flex';
+    ts.innerHTML = '';
+  }
+
+  // Lektionen tab
+  const tl = document.getElementById('tbody-lektionen');
+  tl.innerHTML = p.lektionen.length ? p.lektionen.map((l,i) => `<tr>
+    <td style="color:var(--gray-400);font-size:11px">${i+1}</td>
+    <td><strong>${esc(l.title)}</strong></td>
+    <td style="font-family:monospace;font-size:11px">${esc(l.slug)}</td>
+    <td style="font-family:monospace;color:var(--gray-400)">${l.sectionId||'—'}</td>
+    <td>${l.lessonOrder}</td>
+    <td><span class="tag ${l.status==='publish'?'tag-green':'tag-orange'}">${l.status}</span></td>
+  </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:20px">Keine mpcs-lesson-Posts gefunden</td></tr>';
+}
+
+function showTab(id, el) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+// ===== PLUGIN GENERATION =====
+function generateAndGoTo4() {
+  const cptA = v('cpt-angebote') || 'angebote';
+  const cptK = v('cpt-kurse') || 'mpcs-course';
+  const cptS = v('cpt-sections2') || 'mpcs-section';
+  const cptL = v('cpt-lektionen') || 'mpcs-lesson';
+  const mwst = v('map-mwst') || '19';
+  const zahlung = v('map-zahlungsform') || 'rechnung';
+  const type = v('map-type') || 'abo';
+  const p = S.parsed;
+
+  const angData = p.angebote.map(a => ({
+    title: a.title, slug: a.slug, status: a.status === 'publish' ? 'publish' : 'draft',
+    content: truncContent(a.content),
+    preis_netto: a.price, mwst_satz: parseInt(mwst),
+    mwst_betrag: a.mapped.mwst_betrag, endpreis: a.mapped.endpreis,
+    intervall: a.mapped.intervall, rechnungsstellung: a.mapped.rechnungsstellung,
+    zugang: a.mapped.zugang, type, zahlungsform: zahlung,
+    trial: a.trial, trial_days: a.trialDays, old_id: a.id,
+  }));
+
+  const kurseData = p.kurse.map(k => ({
+    title: k.title, slug: k.slug, status: k.status === 'publish' ? 'publish' : 'draft',
+    content: truncContent(k.content), menu_order: k.menuOrder, old_id: k.id,
+  }));
+
+  const sektData = p.sektionen2.map(s => ({
+    title: s.title, slug: s.slug, status: s.status === 'publish' ? 'publish' : 'draft',
+    content: truncContent(s.content), old_parent_id: s.parent, menu_order: s.menuOrder, old_id: s.id,
+  }));
+
+  const lektData = p.lektionen.map(l => ({
+    title: l.title, slug: l.slug, status: l.status === 'publish' ? 'publish' : 'draft',
+    content: truncContent(l.content), old_section_id: l.sectionId, lesson_order: l.lessonOrder, old_id: l.id,
+  }));
+
+  const jsonA = phpJsonStr(JSON.stringify(angData, null, 2));
+  const jsonK = phpJsonStr(JSON.stringify(kurseData, null, 2));
+  const jsonS = phpJsonStr(JSON.stringify(sektData, null, 2));
+  const jsonL = phpJsonStr(JSON.stringify(lektData, null, 2));
+
+  pluginCode = `<?php
+/**
+ * Plugin Name:  wG Migration – MemberPress zu Custom Platform
+ * Description:  Einmalig ausführen! Migriert ${angData.length} Angebote, ${kurseData.length} Kurse, ${sektData.length} Sektionen, ${lektData.length} Lektionen.
+ * Version:      1.0.0
+ * Author:       webGefährte
+ */
+
+if ( ! defined( 'ABSPATH' ) ) exit;
+
+define( 'WG_CPT_ANGEBOTE',  '${cptA}' );
+define( 'WG_CPT_KURSE',     '${cptK}' );
+define( 'WG_CPT_SEKTIONEN', '${cptS}' );
+define( 'WG_CPT_LEKTIONEN', '${cptL}' );
+
+// ─── Admin-Menü ──────────────────────────────────────────────────────────────
+
+add_action( 'admin_menu', function () {
+    add_management_page( 'wG Migration', 'wG Migration', 'manage_options', 'wg-migration', 'wg_migration_page' );
+} );
+
+function wg_migration_page() {
+    $result = null;
+    if ( isset( $_POST['wg_run'] ) && check_admin_referer( 'wg_nonce' ) ) {
+        $result = wg_run_migration();
+    }
+    $counts = [
+        'Angebote'  => count( wg_data_angebote() ),
+        'Kurse'     => count( wg_data_kurse() ),
+        'Sektionen' => count( wg_data_sektionen() ),
+        'Lektionen' => count( wg_data_lektionen() ),
+    ];
+    $total = array_sum( $counts );
+    ?>
+    <div class="wrap">
+    <h1>webGefährte – MemberPress Migration</h1>
+    <p>Migriert Inhalte aus dem alten MemberPress-System in die neue Custom-Platform.</p>
+    <table class="widefat fixed" style="max-width:400px;margin:16px 0">
+        <tr><th>Typ</th><th>Anzahl</th></tr>
+        <?php foreach ( $counts as $label => $cnt ) : ?>
+        <tr><td><?php echo esc_html($label); ?></td><td><strong><?php echo $cnt; ?></strong></td></tr>
+        <?php endforeach; ?>
+        <tr style="background:#f0f6e0"><td><strong>Gesamt</strong></td><td><strong><?php echo $total; ?></strong></td></tr>
+    </table>
+
+    <?php if ( $result ) : $ok = $result['success']; ?>
+    <div style="background:<?php echo $ok ? '#f0f6e0' : '#fff5f5'; ?>;border-left:4px solid <?php echo $ok ? '#92BB20' : '#ef4444'; ?>;padding:12px 16px;max-width:800px;border-radius:4px">
+        <strong><?php echo esc_html( $result['message'] ); ?></strong>
+        <details style="margin-top:8px"><summary style="cursor:pointer;font-size:13px">Log anzeigen (<?php echo count($result['details']); ?> Einträge)</summary>
+        <pre style="font-size:12px;max-height:400px;overflow:auto;margin-top:8px"><?php echo esc_html( implode( "\n", $result['details'] ) ); ?></pre>
+        </details>
+    </div>
+    <?php endif; ?>
+
+    <form method="post" style="margin-top:20px">
+        <?php wp_nonce_field( 'wg_nonce' ); ?>
+        <table class="form-table" style="max-width:500px">
+        <tr><th>Was migrieren?</th><td>
+            <label><input type="checkbox" name="do_angebote" value="1" checked> Angebote (+ Rollen)</label><br>
+            <label><input type="checkbox" name="do_kurse" value="1" checked> Kurse</label><br>
+            <label><input type="checkbox" name="do_sektionen" value="1" checked> Sektionen</label><br>
+            <label><input type="checkbox" name="do_lektionen" value="1" checked> Lektionen</label>
+        </td></tr>
+        <tr><th>Duplikate?</th><td><label><input type="checkbox" name="skip_existing" value="1"> Bereits vorhandene Posts überspringen (Slug-Prüfung)</label></td></tr>
+        </table>
+        <p>
+        <button type="submit" name="wg_run" class="button button-primary button-hero"
+            onclick="return confirm('Wirklich starten? Diese Aktion schreibt Daten in die WordPress-Datenbank.')">
+            🚀 Migration jetzt starten
+        </button>
+        </p>
+    </form>
+    <hr><p style="color:#999;font-size:12px">Nach erfolgreicher Migration: Plugin unter Plugins → deaktivieren und löschen.</p>
+    </div>
+    <?php
+}
+
+// ─── Migration ───────────────────────────────────────────────────────────────
+
+function wg_run_migration() {
+    $details = []; $errors = [];
+    $skip = ! empty( $_POST['skip_existing'] );
+
+    // 1. Kurse
+    $kurs_id_map = []; // old_id => new WP id
+    if ( ! empty( $_POST['do_kurse'] ) ) {
+        foreach ( wg_data_kurse() as $k ) {
+            if ( $skip && get_page_by_path( $k['slug'], OBJECT, WG_CPT_KURSE ) ) {
+                $ex = get_page_by_path( $k['slug'], OBJECT, WG_CPT_KURSE );
+                $kurs_id_map[ $k['old_id'] ] = $ex->ID;
+                $details[] = '[SKIP] Kurs: ' . $k['title']; continue;
+            }
+            $id = wp_insert_post( [
+                'post_title' => $k['title'], 'post_name' => $k['slug'],
+                'post_content' => $k['content'], 'post_status' => $k['status'],
+                'post_type' => WG_CPT_KURSE, 'menu_order' => $k['menu_order'],
+            ], true );
+            if ( is_wp_error( $id ) ) { $errors[] = 'Kurs-Fehler: ' . $k['title'] . ' – ' . $id->get_error_message(); continue; }
+            update_post_meta( $id, '_mpcs_course_status', 'enabled' );
+            update_post_meta( $id, '_mpcs_course_menu_order', $k['menu_order'] );
+            update_post_meta( $id, 'wg_migrated_from', 'mpcs_course_' . $k['old_id'] );
+            $kurs_id_map[ $k['old_id'] ] = $id;
+            $details[] = '[OK] Kurs: ' . $k['title'] . ' → ID ' . $id;
+        }
+    }
+
+    // 2. Sektionen
+    $sekt_id_map = [];
+    if ( ! empty( $_POST['do_sektionen'] ) ) {
+        foreach ( wg_data_sektionen() as $s ) {
+            if ( $skip && get_page_by_path( $s['slug'], OBJECT, WG_CPT_SEKTIONEN ) ) {
+                $ex = get_page_by_path( $s['slug'], OBJECT, WG_CPT_SEKTIONEN );
+                $sekt_id_map[ $s['old_id'] ] = $ex->ID;
+                $details[] = '[SKIP] Sektion: ' . $s['title']; continue;
+            }
+            $new_parent = isset( $kurs_id_map[ $s['old_parent_id'] ] ) ? $kurs_id_map[ $s['old_parent_id'] ] : 0;
+            $id = wp_insert_post( [
+                'post_title' => $s['title'], 'post_name' => $s['slug'],
+                'post_content' => $s['content'], 'post_status' => $s['status'],
+                'post_type' => WG_CPT_SEKTIONEN, 'post_parent' => $new_parent,
+                'menu_order' => $s['menu_order'],
+            ], true );
+            if ( is_wp_error( $id ) ) { $errors[] = 'Sektion-Fehler: ' . $s['title']; continue; }
+            update_post_meta( $id, '_mpcs_section_course_id', $new_parent );
+            update_post_meta( $id, 'wg_migrated_from', 'mpcs_section_' . $s['old_id'] );
+            $sekt_id_map[ $s['old_id'] ] = $id;
+            $details[] = '[OK] Sektion: ' . $s['title'] . ' → ID ' . $id . ' (Kurs: ' . $new_parent . ')';
+        }
+    }
+
+    // 3. Lektionen
+    if ( ! empty( $_POST['do_lektionen'] ) ) {
+        foreach ( wg_data_lektionen() as $l ) {
+            if ( $skip && get_page_by_path( $l['slug'], OBJECT, WG_CPT_LEKTIONEN ) ) {
+                $details[] = '[SKIP] Lektion: ' . $l['title']; continue;
+            }
+            // Sektion-ID remappen: erst sektionen2, dann direkt kurs als fallback
+            $new_sect_id = $l['old_section_id'];
+            if ( isset( $sekt_id_map[ $l['old_section_id'] ] ) ) $new_sect_id = $sekt_id_map[ $l['old_section_id'] ];
+            elseif ( isset( $kurs_id_map[ $l['old_section_id'] ] ) ) $new_sect_id = $kurs_id_map[ $l['old_section_id'] ];
+            $id = wp_insert_post( [
+                'post_title' => $l['title'], 'post_name' => $l['slug'],
+                'post_content' => $l['content'], 'post_status' => $l['status'],
+                'post_type' => WG_CPT_LEKTIONEN, 'menu_order' => $l['lesson_order'],
+            ], true );
+            if ( is_wp_error( $id ) ) { $errors[] = 'Lektion-Fehler: ' . $l['title']; continue; }
+            update_post_meta( $id, '_mpcs_lesson_status', 'enabled' );
+            update_post_meta( $id, '_mpcs_lesson_section_id', $new_sect_id );
+            update_post_meta( $id, '_mpcs_lesson_lesson_order', $l['lesson_order'] );
+            update_post_meta( $id, 'wg_migrated_from', 'mpcs_lesson_' . $l['old_id'] );
+            $details[] = '[OK] Lektion: ' . $l['title'] . ' → ID ' . $id . ' (Sektion: ' . $new_sect_id . ')';
+        }
+    }
+
+    // 4. Angebote
+    if ( ! empty( $_POST['do_angebote'] ) ) {
+        foreach ( wg_data_angebote() as $a ) {
+            if ( $skip && get_page_by_path( $a['slug'], OBJECT, WG_CPT_ANGEBOTE ) ) {
+                $details[] = '[SKIP] Angebot: ' . $a['title']; continue;
+            }
+            $id = wp_insert_post( [
+                'post_title' => $a['title'], 'post_name' => $a['slug'],
+                'post_content' => $a['content'], 'post_status' => $a['status'],
+                'post_type' => WG_CPT_ANGEBOTE,
+            ], true );
+            if ( is_wp_error( $id ) ) { $errors[] = 'Angebot-Fehler: ' . $a['title']; continue; }
+            $fields = [ 'preis_netto', 'mwst_satz', 'mwst_betrag', 'endpreis', 'intervall',
+                        'rechnungsstellung', 'zugang', 'type', 'zahlungsform' ];
+            foreach ( $fields as $f ) update_post_meta( $id, $f, $a[ $f ] );
+            update_post_meta( $id, 'mehrwertsteuer', (string) $a['mwst_satz'] );
+            update_post_meta( $id, 'wg_migrated_from', 'mepr_' . $a['old_id'] );
+            if ( $a['trial'] ) update_post_meta( $id, 'trial_days', $a['trial_days'] );
+            // Subscriber-Rolle anlegen
+            $role = 'abonnent_' . $id;
+            if ( ! get_role( $role ) ) add_role( $role, 'Abonnent #' . $id, [ 'read' => true, $role => true ] );
+            $admin = get_role( 'administrator' );
+            if ( $admin && ! $admin->has_cap( $role ) ) $admin->add_cap( $role );
+            $details[] = '[OK] Angebot: ' . $a['title'] . ' → ID ' . $id . ' | Rolle: ' . $role;
+        }
+    }
+
+    if ( ! empty( $errors ) ) {
+        return [ 'success' => false, 'message' => '⚠️ Migration mit ' . count($errors) . ' Fehlern.', 'details' => array_merge($details,$errors) ];
+    }
+    return [ 'success' => true, 'message' => '✅ Erfolgreich! ' . count($details) . ' Einträge verarbeitet.', 'details' => $details ];
+}
+
+// ─── Daten ───────────────────────────────────────────────────────────────────
+
+function wg_data_angebote() {
+    static $d = null;
+    if ( $d === null ) $d = json_decode( ${jsonA}, true ) ?: [];
+    return $d;
+}
+
+function wg_data_kurse() {
+    static $d = null;
+    if ( $d === null ) $d = json_decode( ${jsonK}, true ) ?: [];
+    return $d;
+}
+
+function wg_data_sektionen() {
+    static $d = null;
+    if ( $d === null ) $d = json_decode( ${jsonS}, true ) ?: [];
+    return $d;
+}
+
+function wg_data_lektionen() {
+    static $d = null;
+    if ( $d === null ) $d = json_decode( ${jsonL}, true ) ?: [];
+    return $d;
+}
+`;
+
+  document.getElementById('php-preview').textContent =
+    pluginCode.substring(0, 4000) + '\n\n// ... [' + pluginCode.length.toLocaleString() + ' Zeichen gesamt, vollständig beim Download]';
+  goToStep(4);
+}
+
+// ===== METHOD SELECTOR =====
+function selectMethod(m) {
+  document.getElementById('mc-php').classList.toggle('selected', m === 'php');
+  document.getElementById('mc-rest').classList.toggle('selected', m === 'rest');
+  document.getElementById('panel-php').style.display = m === 'php' ? 'block' : 'none';
+  document.getElementById('panel-rest').style.display = m === 'rest' ? 'block' : 'none';
+}
+
+// ===== DOWNLOAD / COPY =====
+function downloadPlugin() {
+  if (!pluginCode) { alert('Bitte zuerst generieren!'); return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([pluginCode], { type: 'text/plain;charset=utf-8' }));
+  a.download = 'wg-migration.php';
+  a.click();
+}
+function copyCode() {
+  if (!pluginCode) return;
+  navigator.clipboard.writeText(pluginCode).then(() => alert('✅ Code in Zwischenablage kopiert!'));
+}
+
+// ===== REST API MIGRATION =====
+async function runRestMigration() {
+  const url = (v('wp-url')||'').replace(/\/$/,'');
+  const user = v('wp-user'); const pass = v('wp-app-password');
+  if (!url||!user||!pass) { alert('URL, Benutzername und App-Passwort in Schritt 3 eintragen!'); return; }
+  const auth = btoa(user + ':' + pass);
+  const log = document.getElementById('rest-log');
+  const prog = document.getElementById('rest-progress');
+  log.style.display = 'block'; log.textContent = '';
+  document.getElementById('rest-progress-wrap').style.display = 'block';
+  document.getElementById('btn-run-rest').disabled = true;
+
+  const p = S.parsed;
+  const items = [
+    ...p.kurse.map(k=>({...k,_cpt:v('cpt-kurse')||'mpcs-course',_t:'Kurs'})),
+    ...p.sektionen2.map(s=>({...s,_cpt:v('cpt-sections2')||'mpcs-section',_t:'Sektion'})),
+    ...p.lektionen.map(l=>({...l,_cpt:v('cpt-lektionen')||'mpcs-lesson',_t:'Lektion'})),
+    ...p.angebote.map(a=>({...a,_cpt:v('cpt-angebote')||'angebote',_t:'Angebot'})),
+  ];
+
+  let done = 0;
+  for (const item of items) {
+    const body = { title: item.title, slug: item.slug, status: item.status==='publish'?'publish':'draft',
+                   content: (item.content||'').substring(0,2000), type: item._cpt };
+    try {
+      const r = await fetch(`${url}/wp-json/wp/v2/${item._cpt}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Basic ' + auth },
+        body: JSON.stringify(body)
+      });
+      const d = await r.json();
+      log.textContent += r.ok ? `✅ [${item._t}] ${item.title} → ID ${d.id}\n` : `❌ [${item._t}] ${item.title}: ${d.message||r.statusText}\n`;
+    } catch(e) { log.textContent += `❌ Netzwerkfehler: ${item.title}\n`; }
+    done++;
+    prog.style.width = Math.round(done/items.length*100) + '%';
+    document.getElementById('rest-progress-label').textContent = done + ' / ' + items.length;
+    log.scrollTop = log.scrollHeight;
+    await new Promise(r => setTimeout(r, 150));
+  }
+  log.textContent += `\n🎉 Fertig! ${done}/${items.length} verarbeitet.`;
+  document.getElementById('btn-run-rest').disabled = false;
+}
+
+// ===== UTILS =====
+const v = id => document.getElementById(id)?.value || '';
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const truncContent = s => (s||'').substring(0, 8000).replace(/'/g, "\\'").replace(/\\/g,'\\\\');
+const phpJsonStr = s => "'" + s.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
+</script>
+</body>
+</html>
