@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>webGefährte – Kurs-Migration Tool</title>
+<title>webGefährte – WXR Migration Tool</title>
 <style>
   :root {
     --green: #92BB20; --green-dark: #7a9e1a; --green-light: #f0f6e0;
@@ -30,29 +30,28 @@
   .card { background: white; border-radius: 12px; border: 1px solid var(--gray-200); padding: 24px; margin-bottom: 20px; }
   .card h2 { font-size: 18px; font-weight: 700; color: var(--gray-900); margin-bottom: 6px; }
   .card > p { font-size: 14px; color: var(--gray-600); }
-  .upload-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 20px; }
-  .upload-zone { border: 2px dashed var(--gray-300); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all .2s; background: var(--gray-50); }
+  .upload-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 20px; }
+  .upload-zone { border: 2px dashed var(--gray-300); border-radius: 10px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all .2s; background: var(--gray-50); }
   .upload-zone:hover, .upload-zone.drag-over { border-color: var(--green); background: var(--green-light); }
   .upload-zone.loaded { border-color: var(--green); background: var(--green-light); border-style: solid; }
-  .upload-zone .uz-icon { font-size: 30px; margin-bottom: 6px; }
-  .upload-zone h3 { font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 3px; }
-  .upload-zone p { font-size: 12px; color: var(--gray-500); }
+  .upload-zone.error { border-color: var(--red); background: #fef2f2; }
+  .upload-zone .uz-icon { font-size: 32px; margin-bottom: 8px; }
+  .upload-zone h3 { font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 4px; }
+  .upload-zone p { font-size: 12px; color: var(--gray-500); word-break: break-all; }
   .upload-zone .badge { display: inline-block; background: var(--green); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-top: 6px; }
-  .upload-zone.optional { border-style: dashed; opacity: .85; }
-  .optional-label { display: inline-block; background: var(--orange); color: white; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; margin-bottom: 4px; }
   .file-input { display: none; }
   .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; }
   .btn-primary { background: var(--green); color: white; }
-  .btn-primary:hover { background: var(--green-dark); }
-  .btn-primary:disabled { background: var(--gray-300); cursor: not-allowed; }
+  .btn-primary:hover:not(:disabled) { background: var(--green-dark); }
+  .btn-primary:disabled { background: var(--gray-300); cursor: not-allowed; color: var(--gray-500); }
   .btn-secondary { background: white; color: var(--gray-700); border: 1px solid var(--gray-300); }
   .btn-secondary:hover { background: var(--gray-100); }
   .btn-lg { padding: 14px 28px; font-size: 16px; }
-  .btn-actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+  .btn-actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; align-items: center; }
   .table-wrap { overflow-x: auto; margin-top: 16px; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th { background: var(--gray-50); padding: 10px 12px; text-align: left; font-weight: 600; color: var(--gray-600); border-bottom: 2px solid var(--gray-200); white-space: nowrap; }
-  td { padding: 9px 12px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); vertical-align: top; }
   tr:hover td { background: var(--gray-50); }
   .tag { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; }
   .tag-green { background: var(--green-light); color: var(--green-dark); }
@@ -73,21 +72,22 @@
   .alert-info { background: #eff6ff; color: #1e40af; border-left: 4px solid var(--blue); }
   .alert-success { background: var(--green-light); color: var(--green-dark); border-left: 4px solid var(--green); }
   .alert-warn { background: #fffbeb; color: #92400e; border-left: 4px solid #f59e0b; }
+  .alert-error { background: #fef2f2; color: #b91c1c; border-left: 4px solid var(--red); }
   .page { display: none; }
   .page.active { display: block; }
-  .output-box { background: #1e1e2e; color: #cdd6f4; font-family: 'Courier New', monospace; font-size: 11.5px; border-radius: 10px; padding: 16px; max-height: 380px; overflow: auto; white-space: pre; margin-top: 14px; line-height: 1.5; }
-  .progress-wrap { background: var(--gray-200); border-radius: 999px; height: 8px; overflow: hidden; margin-top: 8px; }
-  .progress-bar { background: var(--green); height: 100%; border-radius: 999px; transition: width .3s; }
-  .mapping-row { display: grid; grid-template-columns: 1fr 32px 1fr; gap: 8px; align-items: center; margin-bottom: 8px; padding: 10px 12px; background: var(--gray-50); border-radius: 8px; }
-  .mapping-src { font-size: 12px; font-family: monospace; color: #6b21a8; background: #faf5ff; padding: 3px 8px; border-radius: 4px; display: inline-block; }
-  .mapping-arrow { text-align: center; color: var(--green); font-weight: bold; }
-  .field-group label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 5px; }
-  .field-group input, .field-group select { width: 100%; padding: 8px 10px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; }
-  .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
-  .method-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
-  .method-card { border: 2px solid var(--gray-200); border-radius: 10px; padding: 18px; cursor: pointer; transition: all .15s; }
-  .method-card:hover { border-color: var(--green); background: var(--green-light); }
-  .method-card.selected { border-color: var(--green); background: var(--green-light); }
+  /* Category tree */
+  .cat-tree { font-size: 13px; }
+  .cat-course-row { font-weight: 700; color: var(--gray-900); padding: 10px 0 6px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .cat-section-row { padding: 6px 0 6px 20px; color: var(--gray-700); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .cat-section-row::before { content: '└─'; color: var(--gray-400); font-family: monospace; margin-right: 4px; }
+  /* Validation list */
+  .val-list { list-style: none; }
+  .val-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--gray-100); font-size: 13px; }
+  .val-item:last-child { border-bottom: none; }
+  .val-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .val-msg { flex: 1; }
+  .val-detail { color: var(--gray-500); font-size: 11px; margin-top: 4px; font-family: monospace; word-break: break-all; }
+  .val-summary-bar { display: flex; gap: 16px; flex-wrap: wrap; padding: 12px 16px; background: var(--gray-50); border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
 </style>
 </head>
 <body>
@@ -98,7 +98,7 @@
   </div>
   <div>
     <h1>webGefährte – Kurs-Migration</h1>
-    <div class="header-sub">MemberPress Courses → WordPress Custom Platform (angebote CPT + vollständige Kursstruktur)</div>
+    <div class="header-sub">MemberPress Courses → WordPress WXR (Tools → Import → WordPress)</div>
   </div>
 </div>
 
@@ -107,64 +107,62 @@
   <div class="step-sep">›</div>
   <div class="step" data-step="2" onclick="goToStep(2)"><div class="step-num">2</div> Vorschau</div>
   <div class="step-sep">›</div>
-  <div class="step" data-step="3" onclick="goToStep(3)"><div class="step-num">3</div> Mapping</div>
+  <div class="step" data-step="3" onclick="goToStep(3)"><div class="step-num">3</div> Validierung</div>
   <div class="step-sep">›</div>
-  <div class="step" data-step="4" onclick="goToStep(4)"><div class="step-num">4</div> Generieren</div>
+  <div class="step" data-step="4" onclick="goToStep(4)"><div class="step-num">4</div> Export</div>
 </div>
 
 <div class="main">
 
-<!-- STEP 1 -->
+<!-- ══════════ STEP 1: UPLOAD ══════════ -->
 <div class="page active" id="page-1">
   <div class="card">
     <h2>📁 WordPress-Export-Dateien hochladen</h2>
-    <p>Lade die 4 WXR-XML-Dateien hoch. Die ersten 3 sind Pflicht, <em>Sections (mpcs-section)</em> ist optional aber empfohlen für vollständiges Kurs-Mapping.</p>
+    <p>Lade alle 3 WXR-XML-Dateien hoch. Reihenfolge egal – das Tool erkennt den Typ automatisch.</p>
 
     <div class="upload-grid">
-      <div class="upload-zone" id="zone-angebote" onclick="triggerFile('angebote')"
-           ondragover="onDragOver(event,'angebote')" ondragleave="onDragLeave('angebote')" ondrop="onDrop(event,'angebote')">
-        <input type="file" class="file-input" id="file-angebote" accept=".xml" onchange="loadFile('angebote',this)">
-        <div class="uz-icon" id="icon-angebote">💼</div>
-        <h3>Online-Angebote</h3>
-        <p id="status-angebote">memberpressproduct – Abonnements & Preise</p>
-        <div id="badge-angebote" style="display:none" class="badge">✓ geladen</div>
-      </div>
-
-      <div class="upload-zone" id="zone-kurse" onclick="triggerFile('kurse')"
-           ondragover="onDragOver(event,'kurse')" ondragleave="onDragLeave('kurse')" ondrop="onDrop(event,'kurse')">
-        <input type="file" class="file-input" id="file-kurse" accept=".xml" onchange="loadFile('kurse',this)">
-        <div class="uz-icon" id="icon-kurse">🗂️</div>
-        <h3>Kurse / Etappen</h3>
-        <p id="status-kurse">mpcs-course – Kursstruktur (Etappen)</p>
-        <div id="badge-kurse" style="display:none" class="badge">✓ geladen</div>
-      </div>
-
-      <div class="upload-zone" id="zone-lessons" onclick="triggerFile('lessons')"
-           ondragover="onDragOver(event,'lessons')" ondragleave="onDragLeave('lessons')" ondrop="onDrop(event,'lessons')">
+      <div class="upload-zone" id="zone-lessons"
+           onclick="triggerFile('lessons')"
+           ondragover="onDragOver(event,'lessons')"
+           ondragleave="onDragLeave('lessons')"
+           ondrop="onDrop(event,'lessons')">
         <input type="file" class="file-input" id="file-lessons" accept=".xml" onchange="loadFile('lessons',this)">
         <div class="uz-icon" id="icon-lessons">📄</div>
-        <h3>Lektionen</h3>
-        <p id="status-lessons">mpcs-lesson – Einzelne Lektionen</p>
+        <h3>Lessons.xml</h3>
+        <p id="status-lessons">post_type: mpcs-lesson</p>
         <div id="badge-lessons" style="display:none" class="badge">✓ geladen</div>
       </div>
 
-      <div class="upload-zone optional" id="zone-sections2" onclick="triggerFile('sections2')"
-           ondragover="onDragOver(event,'sections2')" ondragleave="onDragLeave('sections2')" ondrop="onDrop(event,'sections2')">
-        <input type="file" class="file-input" id="file-sections2" accept=".xml" onchange="loadFile('sections2',this)">
-        <div class="optional-label">EMPFOHLEN</div>
-        <div class="uz-icon" id="icon-sections2">📑</div>
-        <h3>Kurs-Sektionen</h3>
-        <p id="status-sections2">mpcs-section – Abschnitte innerhalb der Kurse</p>
-        <div id="badge-sections2" style="display:none" class="badge">✓ geladen</div>
+      <div class="upload-zone" id="zone-kurse"
+           onclick="triggerFile('kurse')"
+           ondragover="onDragOver(event,'kurse')"
+           ondragleave="onDragLeave('kurse')"
+           ondrop="onDrop(event,'kurse')">
+        <input type="file" class="file-input" id="file-kurse" accept=".xml" onchange="loadFile('kurse',this)">
+        <div class="uz-icon" id="icon-kurse">🗂️</div>
+        <h3>Sections.xml</h3>
+        <p id="status-kurse">post_type: mpcs-course (enthält Sektions-Taxonomie)</p>
+        <div id="badge-kurse" style="display:none" class="badge">✓ geladen</div>
+      </div>
+
+      <div class="upload-zone" id="zone-angebote"
+           onclick="triggerFile('angebote')"
+           ondragover="onDragOver(event,'angebote')"
+           ondragleave="onDragLeave('angebote')"
+           ondrop="onDrop(event,'angebote')">
+        <input type="file" class="file-input" id="file-angebote" accept=".xml" onchange="loadFile('angebote',this)">
+        <div class="uz-icon" id="icon-angebote">💼</div>
+        <h3>Online-Angebote.xml</h3>
+        <p id="status-angebote">post_type: memberpressproduct</p>
+        <div id="badge-angebote" style="display:none" class="badge">✓ geladen</div>
       </div>
     </div>
 
-    <div class="alert alert-info" style="margin-top:18px">
-      ℹ️ <div><strong>So exportierst du mpcs-section aus WordPress:</strong><br>
-      WP Admin → Werkzeuge → Exportieren → <strong>Benutzerdefinierter Beitragstyp</strong> → <code>mpcs-section</code> auswählen → Exportieren. Falls dort nichts steht, hat dein System keine separaten Sektionen.</div>
+    <div class="alert alert-success" style="margin-top:18px">
+      🔒 Alle Dateien werden ausschließlich lokal im Browser verarbeitet – keine Daten werden hochgeladen.
     </div>
-    <div class="alert alert-success" style="margin-top:0">
-      🔒 Alle Dateien werden nur lokal in deinem Browser verarbeitet – es werden keine Daten hochgeladen.
+    <div id="upload-error" style="display:none" class="alert alert-error">
+      ❌ <span id="upload-error-msg"></span>
     </div>
 
     <div class="btn-actions">
@@ -175,63 +173,45 @@
   </div>
 </div>
 
-<!-- STEP 2 -->
+<!-- ══════════ STEP 2: PREVIEW ══════════ -->
 <div class="page" id="page-2">
   <div class="card">
     <h2>🔍 Erkannte Inhalte</h2>
-    <p>Vollständige Übersicht aller gefundenen Inhalte aus deinen Export-Dateien.</p>
-    <div class="stats-grid" id="stats-grid">
-      <div class="stat-card"><div class="stat-num" id="stat-angebote">0</div><div class="stat-label">Angebote</div></div>
-      <div class="stat-card"><div class="stat-num" id="stat-kurse">0</div><div class="stat-label">Kurse (Etappen)</div></div>
-      <div class="stat-card"><div class="stat-num" id="stat-sektionen2">0</div><div class="stat-label">Kurs-Sektionen</div></div>
+    <p>Überblick nach Verarbeitung aller 3 Dateien.</p>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num" id="stat-kurse">0</div><div class="stat-label">Kurse</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-sektionen">0</div><div class="stat-label">Sektionen</div></div>
       <div class="stat-card"><div class="stat-num" id="stat-lektionen">0</div><div class="stat-label">Lektionen</div></div>
-      <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Gesamt Posts</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-angebote">0</div><div class="stat-label">Angebote</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-quizzes">0</div><div class="stat-label">Quizzes</div></div>
     </div>
   </div>
 
   <div class="card">
     <div class="tabs">
-      <div class="tab active" onclick="showTab('tab-angebote',this)">💼 Angebote</div>
-      <div class="tab" onclick="showTab('tab-kurse',this)">🗂️ Kurse</div>
-      <div class="tab" onclick="showTab('tab-sektionen2',this)">📑 Sektionen</div>
-      <div class="tab" onclick="showTab('tab-lektionen',this)">📄 Lektionen</div>
+      <div class="tab active" onclick="showTab('tab-cats',this)">🗂️ Kategorien-Baum</div>
+      <div class="tab" onclick="showTab('tab-lessons-prev',this)">📄 Lektionen</div>
+      <div class="tab" onclick="showTab('tab-angebote-prev',this)">💼 Angebote</div>
     </div>
 
-    <div class="tab-content active" id="tab-angebote">
+    <div class="tab-content active" id="tab-cats">
+      <div id="cat-tree-wrap"></div>
+    </div>
+
+    <div class="tab-content" id="tab-lessons-prev">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>#</th><th>Titel</th><th>Preis (netto)</th><th>Period Type</th><th>→ Intervall</th><th>→ Zugang</th><th>→ Rechnungsstellung</th><th>MwSt 19%</th><th>Endpreis</th><th>Trial</th></tr></thead>
-          <tbody id="tbody-angebote"></tbody>
+          <thead><tr><th>#</th><th>Titel</th><th>Sektion</th><th>Kurs</th><th>Order</th><th>Quiz?</th><th>Slug</th></tr></thead>
+          <tbody id="tbody-lessons-prev"></tbody>
         </table>
       </div>
     </div>
 
-    <div class="tab-content" id="tab-kurse">
+    <div class="tab-content" id="tab-angebote-prev">
       <div class="table-wrap">
         <table>
-          <thead><tr><th>#</th><th>Titel</th><th>Slug</th><th>Status</th><th>Alte ID</th></tr></thead>
-          <tbody id="tbody-kurse"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="tab-content" id="tab-sektionen2">
-      <div id="no-sections-hint" class="alert alert-warn">
-        ⚠️ Keine mpcs-section Datei hochgeladen. Die Lektionen referenzieren Sektions-IDs, die ohne diese Datei nicht remappt werden können. Bitte mpcs-section exportieren und hochladen.
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>#</th><th>Titel</th><th>Slug</th><th>Kurs-ID (parent)</th><th>Status</th><th>Alte ID</th></tr></thead>
-          <tbody id="tbody-sektionen2"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="tab-content" id="tab-lektionen">
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>#</th><th>Titel</th><th>Slug</th><th>Sektion-ID (alt)</th><th>Reihenfolge</th><th>Status</th></tr></thead>
-          <tbody id="tbody-lektionen"></tbody>
+          <thead><tr><th>#</th><th>Titel</th><th>→ post_type</th><th>Slug</th><th>Meta-Felder</th></tr></thead>
+          <tbody id="tbody-angebote-prev"></tbody>
         </table>
       </div>
     </div>
@@ -239,129 +219,49 @@
 
   <div class="btn-actions">
     <button class="btn btn-secondary" onclick="goToStep(1)">← Zurück</button>
-    <button class="btn btn-primary btn-lg" onclick="goToStep(3)">Weiter zum Mapping →</button>
+    <button class="btn btn-primary btn-lg" onclick="goToStep(3)">Weiter zur Validierung →</button>
   </div>
 </div>
 
-<!-- STEP 3 -->
+<!-- ══════════ STEP 3: VALIDATION ══════════ -->
 <div class="page" id="page-3">
   <div class="card">
-    <h2>🔗 Feld-Mapping: Angebote → angebote CPT</h2>
-    <p>Standardwerte für die Felder deines Custom Post Types. Die Preis-Berechnungen und Intervall-Mappings laufen automatisch.</p>
-    <div style="margin-top:16px">
-      <div class="mapping-row">
-        <div><div style="font-size:11px;color:var(--gray-500);margin-bottom:3px">MemberPress</div><span class="mapping-src">_mepr_product_price</span></div>
-        <div class="mapping-arrow">→</div>
-        <div class="field-group"><label>Zielfeld</label><input type="text" value="preis_netto" readonly style="background:#f9fafb;color:var(--gray-500)"></div>
-      </div>
-      <div class="mapping-row">
-        <div><div style="font-size:11px;color:var(--gray-500);margin-bottom:3px">MemberPress</div><span class="mapping-src">_mepr_product_period_type</span></div>
-        <div class="mapping-arrow">→</div>
-        <div class="field-group"><label>Mapping-Regel</label>
-          <select id="map-intervall">
-            <option value="auto">Automatisch: months→monatlich, years→jährlich, lifetime→ohne_intervall</option>
-            <option value="monatlich">Immer: monatlich</option>
-            <option value="jährlich">Immer: jährlich</option>
-          </select>
-        </div>
-      </div>
-      <div class="mapping-row">
-        <div><div style="font-size:11px;color:var(--gray-500);margin-bottom:3px">Standard</div><span class="mapping-src">mehrwertsteuer</span></div>
-        <div class="mapping-arrow">→</div>
-        <div class="field-group"><select id="map-mwst"><option value="19">19%</option><option value="0">0%</option></select></div>
-      </div>
-      <div class="mapping-row">
-        <div><div style="font-size:11px;color:var(--gray-500);margin-bottom:3px">Standard</div><span class="mapping-src">zahlungsform</span></div>
-        <div class="mapping-arrow">→</div>
-        <div class="field-group"><select id="map-zahlungsform"><option value="rechnung">Rechnung (manuelle Zahlung)</option><option value="sepa_ueberweisung">SEPA-Überweisung</option></select></div>
-      </div>
-      <div class="mapping-row">
-        <div><div style="font-size:11px;color:var(--gray-500);margin-bottom:3px">Standard</div><span class="mapping-src">type</span></div>
-        <div class="mapping-arrow">→</div>
-        <div class="field-group"><select id="map-type"><option value="abo">abo</option><option value="paket">paket</option><option value="digitales_produkt">digitales_produkt</option><option value="erweiterung">erweiterung</option></select></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>⚙️ Ziel-CPT Namen</h2>
-    <div class="config-grid">
-      <div class="field-group"><label>CPT: Angebote</label><input type="text" id="cpt-angebote" value="angebote"></div>
-      <div class="field-group"><label>CPT: Kurse</label><input type="text" id="cpt-kurse" value="mpcs-course"></div>
-      <div class="field-group"><label>CPT: Sektionen</label><input type="text" id="cpt-sections2" value="mpcs-section"></div>
-      <div class="field-group"><label>CPT: Lektionen</label><input type="text" id="cpt-lektionen" value="mpcs-lesson"></div>
-    </div>
-    <div class="alert alert-warn" style="margin-top:14px">
-      ⚠️ Wenn MemberPress Courses auf der Zielseite installiert ist, CPT-Namen unverändert lassen.
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>🌐 WordPress REST API (für direkte Migration)</h2>
-    <div class="config-grid">
-      <div class="field-group"><label>WordPress URL</label><input type="text" id="wp-url" placeholder="https://deine-seite.de"></div>
-      <div class="field-group"><label>Benutzername</label><input type="text" id="wp-user" placeholder="admin"></div>
-      <div class="field-group" style="grid-column:1/-1"><label>Application Password (WP Admin → Benutzer → Profil → Anwendungspasswörter)</label><input type="text" id="wp-app-password" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx"></div>
-    </div>
+    <h2>✅ Validierung</h2>
+    <p>Alle Daten werden vor dem Export geprüft. Fehler (❌) blockieren den Export – Warnungen (⚠️) sind erlaubt.</p>
+    <div id="val-summary-bar" class="val-summary-bar" style="margin-top:16px"></div>
+    <ul class="val-list" id="val-list"></ul>
   </div>
 
   <div class="btn-actions">
     <button class="btn btn-secondary" onclick="goToStep(2)">← Zurück</button>
-    <button class="btn btn-primary btn-lg" onclick="generateAndGoTo4()">Plugin generieren →</button>
+    <button class="btn btn-primary btn-lg" id="btn-to-export" onclick="goToStep(4)" disabled>
+      WXR exportieren →
+    </button>
+    <span id="val-block-msg" style="font-size:13px;color:var(--red);font-weight:600"></span>
   </div>
 </div>
 
-<!-- STEP 4 -->
+<!-- ══════════ STEP 4: EXPORT ══════════ -->
 <div class="page" id="page-4">
   <div class="card">
-    <h2>✅ Plugin bereit</h2>
-    <p>Wähle deine Migrationsmethode:</p>
-    <div class="method-selector">
-      <div class="method-card selected" id="mc-php" onclick="selectMethod('php')">
-        <div style="font-size:28px;margin-bottom:8px">🔌</div>
-        <h3 style="font-size:15px;font-weight:700;margin-bottom:6px">PHP-Plugin</h3>
-        <p style="font-size:13px;color:var(--gray-600)">Datei in WordPress hochladen, aktivieren, einmal ausführen. Empfohlen.</p>
-        <span class="tag tag-green" style="margin-top:10px;display:inline-block">Empfohlen</span>
-      </div>
-      <div class="method-card" id="mc-rest" onclick="selectMethod('rest')">
-        <div style="font-size:28px;margin-bottom:8px">🌐</div>
-        <h3 style="font-size:15px;font-weight:700;margin-bottom:6px">REST API direkt</h3>
-        <p style="font-size:13px;color:var(--gray-600)">Direkt aus diesem Browser per WordPress REST API. Braucht Application Password.</p>
-        <span class="tag tag-blue" style="margin-top:10px;display:inline-block">Fortgeschritten</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="card" id="panel-php">
-    <h2>📦 PHP-Plugin</h2>
+    <h2>📦 WXR Export</h2>
     <div class="alert alert-info">
-      ℹ️ <div><strong>Anleitung (5 Schritte):</strong><br>
-      1. PHP-Datei herunterladen<br>
-      2. WP Admin → Plugins → Plugin hochladen → wg-migration.php<br>
-      3. Aktivieren → Werkzeuge → wG Migration<br>
-      4. Optionen wählen → "Migration starten" klicken<br>
-      5. Nach Erfolg: Plugin deaktivieren &amp; löschen</div>
+      ℹ️ <div>
+        <strong>Import in WordPress (4 Schritte):</strong><br>
+        1. WXR-Datei herunterladen<br>
+        2. WP Admin → Werkzeuge → Importieren → WordPress<br>
+        3. „WordPress Importer" Plugin installieren (falls noch nicht vorhanden)<br>
+        4. wg-migration-export.xml hochladen → Autor zuweisen → Import starten
+      </div>
     </div>
-    <div id="php-preview" class="output-box"></div>
+    <div id="export-summary" style="margin-top:16px"></div>
     <div class="btn-actions">
-      <button class="btn btn-primary btn-lg" onclick="downloadPlugin()">📥 wg-migration.php herunterladen</button>
-      <button class="btn btn-secondary" onclick="copyCode()">📋 Code kopieren</button>
+      <button class="btn btn-primary btn-lg" onclick="downloadWXR()">
+        📥 wg-migration-export.xml herunterladen
+      </button>
+      <button class="btn btn-secondary" onclick="copyWXR()">📋 XML kopieren</button>
     </div>
   </div>
-
-  <div class="card" id="panel-rest" style="display:none">
-    <h2>🌐 REST API Migration</h2>
-    <div id="rest-status-box"></div>
-    <div id="rest-progress-wrap" style="display:none">
-      <div style="font-size:13px;color:var(--gray-600);margin-bottom:4px" id="rest-progress-label">0 / 0</div>
-      <div class="progress-wrap"><div class="progress-bar" id="rest-progress" style="width:0%"></div></div>
-    </div>
-    <div id="rest-log" style="display:none;font-size:12px;margin-top:12px;max-height:320px;overflow:auto;font-family:monospace;background:#111827;color:#a3e635;padding:14px;border-radius:8px;line-height:1.6"></div>
-    <div class="btn-actions">
-      <button class="btn btn-primary btn-lg" id="btn-run-rest" onclick="runRestMigration()">🚀 Migration starten</button>
-    </div>
-  </div>
-
   <div class="btn-actions">
     <button class="btn btn-secondary" onclick="goToStep(3)">← Zurück</button>
   </div>
@@ -370,215 +270,571 @@
 </div><!-- /main -->
 
 <script>
-// ===== STATE =====
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
 const S = {
-  files: { lessons: null, angebote: null, kurse: null, sections2: null },
-  parsed: { angebote: [], kurse: [], sektionen2: [], lektionen: [] },
+  files: { lessons: null, kurse: null, angebote: null },
+  sectionMap:   new Map(),   // sectionSlug → { name, slug, parentCourse, parentSlug }
+  termIdToSlug: new Map(),   // numeric termId (string) → sectionSlug
+  categories:   [],          // [{ term_id, name, slug, parent_slug }]
+  transformedLessons:  [],
+  transformedProducts: [],
+  validation: { valid: false, errors: [], warnings: [] },
+  wxrContent: '',
   step: 1
 };
-let pluginCode = '';
 
-// ===== NAVIGATION =====
-function goToStep(n) {
-  const required = ['angebote', 'kurse', 'lessons'];
-  if (n >= 2 && required.some(k => !S.files[k])) {
-    alert('Bitte Angebote-, Kurse- und Lektionen-Dateien hochladen (die oberen 3).');
-    return;
-  }
-  if (n === 2) renderPreview();
-  S.step = n;
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + n).classList.add('active');
-  document.querySelectorAll('.step').forEach(s => {
-    const sn = +s.dataset.step;
-    s.classList.toggle('active', sn === n);
-    s.classList.toggle('done', sn < n);
-  });
-  window.scrollTo(0, 0);
-}
+// ═══════════════════════════════════════════════════
+// DOM / XML UTILS
+// ═══════════════════════════════════════════════════
+const cdata   = el  => el ? el.textContent.trim() : '';
+const xmlEsc  = s   => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const esc     = s   => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const domV    = id  => document.getElementById(id)?.value || '';
 
-// ===== UPLOAD =====
-function triggerFile(type) { document.getElementById('file-' + type).click(); }
-function onDragOver(e, t) { e.preventDefault(); document.getElementById('zone-' + t).classList.add('drag-over'); }
-function onDragLeave(t) { document.getElementById('zone-' + t).classList.remove('drag-over'); }
-function onDrop(e, t) { e.preventDefault(); onDragLeave(t); const f = e.dataTransfer.files[0]; if (f) processFile(t, f); }
-function loadFile(type, input) { if (input.files[0]) processFile(type, input.files[0]); }
-
-function processFile(type, file) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const doc = new DOMParser().parseFromString(e.target.result, 'application/xml');
-      if (doc.querySelector('parsererror')) throw new Error('XML-Fehler');
-      S.files[type] = doc;
-      document.getElementById('icon-' + type).textContent = '✅';
-      document.getElementById('status-' + type).textContent = file.name;
-      document.getElementById('badge-' + type).style.display = 'inline-block';
-      document.getElementById('zone-' + type).classList.add('loaded');
-    } catch(err) { alert('Datei-Fehler: ' + err.message); }
-    checkReady();
-  };
-  reader.readAsText(file, 'UTF-8');
-}
-
-function checkReady() {
-  document.getElementById('btn-next-1').disabled = !['angebote','kurse','lessons'].every(k => S.files[k]);
-}
-
-// ===== XML HELPERS =====
-const cdata = el => el ? el.textContent.trim() : '';
 function getMeta(item, key) {
   for (const m of item.querySelectorAll('postmeta')) {
     if (cdata(m.querySelector('meta_key')) === key) return cdata(m.querySelector('meta_value'));
   }
   return '';
 }
+
+function getAllMeta(item) {
+  const out = {};
+  for (const m of item.querySelectorAll('postmeta')) {
+    const k = cdata(m.querySelector('meta_key'));
+    if (k) out[k] = cdata(m.querySelector('meta_value'));
+  }
+  return out;
+}
+
 function getItems(doc, postType) {
-  return Array.from(doc.querySelectorAll('item')).filter(i => cdata(i.querySelector('post_type')) === postType);
+  return Array.from(doc.querySelectorAll('item'))
+    .filter(i => cdata(i.querySelector('post_type')) === postType);
 }
 
-// ===== PARSE =====
-function parse() {
-  S.parsed = { angebote: [], kurse: [], sektionen2: [], lektionen: [] };
+// ═══════════════════════════════════════════════════
+// PURE FUNCTION: buildSectionMap
+// Input:  sectionsDoc  (DOMDocument – Sections.xml)
+// Output: { sectionMap, termIdToSlug }
+// ═══════════════════════════════════════════════════
+function buildSectionMap(sectionsDoc) {
+  const sectionMap   = new Map();
+  const termIdToSlug = new Map();
 
-  // Angebote
-  getItems(S.files.angebote, 'memberpressproduct').forEach(item => {
-    const price = parseFloat((getMeta(item,'_mepr_product_price')||'0').replace(',','.'));
-    const periodType = getMeta(item,'_mepr_product_period_type');
-    const trial = !!getMeta(item,'_mepr_product_trial');
-    const trialDays = getMeta(item,'_mepr_product_trial_days');
-    S.parsed.angebote.push({
-      id: cdata(item.querySelector('post_id')),
-      title: cdata(item.querySelector('title')),
-      slug: cdata(item.querySelector('post_name')),
-      status: cdata(item.querySelector('status')),
-      content: cdata(item.querySelector('encoded')),
-      price, periodType, trial, trialDays,
-      mapped: mapAngebot(price, periodType, trial, trialDays),
-    });
+  // 1. Parse wp:term elements → numeric termId → slug
+  sectionsDoc.querySelectorAll('term').forEach(term => {
+    const taxonomy = cdata(term.querySelector('term_taxonomy'));
+    if (taxonomy === 'mpcs-course-categories') {
+      const termId   = cdata(term.querySelector('term_id'));
+      const termSlug = cdata(term.querySelector('term_slug'));
+      if (termId && termSlug) {
+        termIdToSlug.set(termId,   termSlug);
+        termIdToSlug.set(termSlug, termSlug); // identity: slug→slug
+      }
+    }
   });
 
-  // Kurse
-  getItems(S.files.kurse, 'mpcs-course').forEach(item => {
-    S.parsed.kurse.push({
-      id: cdata(item.querySelector('post_id')),
-      title: cdata(item.querySelector('title')),
-      slug: cdata(item.querySelector('post_name')),
-      status: cdata(item.querySelector('status')),
-      content: cdata(item.querySelector('encoded')),
-      menuOrder: parseInt(getMeta(item,'_mpcs_course_menu_order')) || 0,
-      parent: cdata(item.querySelector('post_parent')),
-    });
-  });
+  // 2. Parse mpcs-course items → read mpcs-course-categories taxonomy entries
+  getItems(sectionsDoc, 'mpcs-course').forEach(item => {
+    const courseName = cdata(item.querySelector('title'));
+    const courseSlug = cdata(item.querySelector('post_name'));
 
-  // Sektionen (optional)
-  if (S.files.sections2) {
-    getItems(S.files.sections2, 'mpcs-section').forEach(item => {
-      S.parsed.sektionen2.push({
-        id: cdata(item.querySelector('post_id')),
-        title: cdata(item.querySelector('title')),
-        slug: cdata(item.querySelector('post_name')),
-        status: cdata(item.querySelector('status')),
-        content: cdata(item.querySelector('encoded')),
-        parent: cdata(item.querySelector('post_parent')),
-        menuOrder: parseInt(getMeta(item,'_mpcs_section_menu_order')) || 0,
+    Array.from(item.querySelectorAll('category'))
+      .filter(cat => cat.getAttribute('domain') === 'mpcs-course-categories')
+      .forEach(cat => {
+        const sectionSlug = (cat.getAttribute('nicename') || '').trim();
+        const sectionName = cat.textContent.trim();
+        if (!sectionSlug) return;
+
+        const entry = { name: sectionName || sectionSlug, slug: sectionSlug, parentCourse: courseName, parentSlug: courseSlug };
+        sectionMap.set(sectionSlug, entry);
+        // fuzzy index: lowercase name
+        if (sectionName) sectionMap.set('__n__' + sectionName.toLowerCase(), entry);
       });
-    });
-  }
+  });
 
-  // Lektionen
-  getItems(S.files.lessons, 'mpcs-lesson').forEach(item => {
-    S.parsed.lektionen.push({
-      id: cdata(item.querySelector('post_id')),
-      title: cdata(item.querySelector('title')),
-      slug: cdata(item.querySelector('post_name')),
-      status: cdata(item.querySelector('status')),
-      content: cdata(item.querySelector('encoded')),
-      sectionId: getMeta(item,'_mpcs_lesson_section_id'),
-      lessonOrder: parseInt(getMeta(item,'_mpcs_lesson_lesson_order')) || 0,
-    });
+  return { sectionMap, termIdToSlug };
+}
+
+// ═══════════════════════════════════════════════════
+// PURE FUNCTION: parseLessons
+// ═══════════════════════════════════════════════════
+function parseLessons(doc) {
+  return getItems(doc, 'mpcs-lesson').map(item => ({
+    id:          cdata(item.querySelector('post_id')),
+    title:       cdata(item.querySelector('title')),
+    slug:        cdata(item.querySelector('post_name')),
+    status:      cdata(item.querySelector('status')) || 'publish',
+    content:     cdata(item.querySelector('encoded')),
+    postDate:    cdata(item.querySelector('post_date')) || '2025-01-01 00:00:00',
+    sectionId:   getMeta(item, '_mpcs_lesson_section_id'),
+    lessonOrder: getMeta(item, '_mpcs_lesson_lesson_order') || '0',
+  }));
+}
+
+// ═══════════════════════════════════════════════════
+// PURE FUNCTION: parseProducts
+// ═══════════════════════════════════════════════════
+function parseProducts(doc) {
+  return getItems(doc, 'memberpressproduct').map(item => ({
+    id:       cdata(item.querySelector('post_id')),
+    title:    cdata(item.querySelector('title')),
+    slug:     cdata(item.querySelector('post_name')),
+    status:   cdata(item.querySelector('status')) || 'publish',
+    content:  cdata(item.querySelector('encoded')),
+    postDate: cdata(item.querySelector('post_date')) || '2025-01-01 00:00:00',
+    allMeta:  getAllMeta(item),
+  }));
+}
+
+// ═══════════════════════════════════════════════════
+// PURE FUNCTION: mergeData
+// Joins every lesson with its resolved section entry
+// ═══════════════════════════════════════════════════
+function mergeData(lessons, sectionMap, termIdToSlug) {
+  return lessons.map(lesson => {
+    const sid = (lesson.sectionId || '').trim();
+    let resolved = null;
+
+    if (sid) {
+      // 1. Direct slug lookup
+      resolved = sectionMap.get(sid);
+      // 2. Numeric termId → slug → entry
+      if (!resolved && termIdToSlug.has(sid)) {
+        resolved = sectionMap.get(termIdToSlug.get(sid));
+      }
+      // 3. Fuzzy: lowercase name
+      if (!resolved) resolved = sectionMap.get('__n__' + sid.toLowerCase());
+      // 4. Fuzzy: partial slug match
+      if (!resolved) {
+        for (const [key, val] of sectionMap) {
+          if (key.startsWith('__n__')) continue;
+          if (key.includes(sid) || sid.includes(key)) { resolved = val; break; }
+        }
+      }
+    }
+
+    return {
+      ...lesson,
+      _resolvedSection: resolved,
+      sectionName: resolved?.name      || null,
+      sectionSlug: resolved?.slug      || null,
+      courseName:  resolved?.parentCourse || null,
+      courseSlug:  resolved?.parentSlug   || null,
+    };
   });
 }
 
-function mapAngebot(price, periodType, trial, trialDays) {
-  let intervall = 'ohne_intervall', rechnungsstellung = 'einmalig', zugang = 'lifetime';
-  if (periodType === 'months') { intervall = 'monatlich'; rechnungsstellung = 'wiederkehrend'; zugang = 'monat'; }
-  else if (periodType === 'years') { intervall = 'jährlich'; rechnungsstellung = 'wiederkehrend'; zugang = 'lifetime'; }
-  if (trial) zugang = 'trial';
-  const mwst = Math.round(price * 0.19 * 100) / 100;
-  const endpreis = Math.round((price + mwst) * 100) / 100;
-  return { intervall, rechnungsstellung, zugang, mwst_betrag: mwst, endpreis };
+// ═══════════════════════════════════════════════════
+// PURE FUNCTION: extractChainedQuiz
+// ═══════════════════════════════════════════════════
+function extractChainedQuiz(content) {
+  const regex   = /\[chained-quiz\s+\d+\]/g;
+  const matches = (content || '').match(regex);
+  return {
+    cleanContent:  (content || '').replace(regex, '').trim(),
+    quizShortcode: matches ? matches[0] : null,
+  };
 }
 
-// ===== PREVIEW =====
+// ═══════════════════════════════════════════════════
+// PURE FUNCTION: generateSlug  (unique, URL-safe)
+// ═══════════════════════════════════════════════════
+function generateSlug(title, usedSlugs) {
+  let base = (title || 'post')
+    .toLowerCase()
+    .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .substring(0, 80) || 'post';
+
+  let slug = base, n = 2;
+  while (usedSlugs.has(slug)) { slug = base + '-' + n++; }
+  usedSlugs.add(slug);
+  return slug;
+}
+
+// ═══════════════════════════════════════════════════
+// PURE FUNCTION: buildCategoryList
+// ═══════════════════════════════════════════════════
+function buildCategoryList(mergedLessons) {
+  const courseMap   = new Map(); // courseSlug → { name, slug }
+  const sectionMap2 = new Map(); // sectionSlug → { name, slug, parentSlug }
+
+  mergedLessons.forEach(l => {
+    if (l.courseName  && l.courseSlug)  courseMap.set(l.courseSlug,   { name: l.courseName,  slug: l.courseSlug });
+    if (l.sectionName && l.sectionSlug) sectionMap2.set(l.sectionSlug, { name: l.sectionName, slug: l.sectionSlug, parentSlug: l.courseSlug });
+  });
+
+  const cats = [];
+  let id = 1000;
+  courseMap.forEach(c  => cats.push({ term_id: id++, name: c.name,  slug: c.slug,  parent_slug: '' }));
+  sectionMap2.forEach(s => cats.push({ term_id: id++, name: s.name,  slug: s.slug,  parent_slug: s.parentSlug || '' }));
+  return cats;
+}
+
+// ═══════════════════════════════════════════════════
+// PURE FUNCTION: transformLessons
+// ═══════════════════════════════════════════════════
+function transformLessons(mergedLessons) {
+  const usedSlugs = new Set();
+  let postId = 2001;
+
+  return mergedLessons.map((l, idx) => {
+    const { cleanContent, quizShortcode } = extractChainedQuiz(l.content);
+
+    // Slug: preserve existing if unique, else generate
+    let slug;
+    if (l.slug && l.slug.trim() && !usedSlugs.has(l.slug.trim())) {
+      slug = l.slug.trim();
+      usedSlugs.add(slug);
+    } else {
+      slug = generateSlug(l.title, usedSlugs);
+    }
+
+    const categories = [];
+    if (l.sectionName && l.sectionSlug) categories.push({ name: l.sectionName, slug: l.sectionSlug });
+    if (l.courseName  && l.courseSlug)  categories.push({ name: l.courseName,  slug: l.courseSlug  });
+
+    const postmeta = {};
+    if (quizShortcode) postmeta['wg_besenwagen_code'] = quizShortcode;
+
+    return {
+      _postId:     postId++,
+      _resolved:   !!l._resolvedSection,
+      _hasQuiz:    !!quizShortcode,
+      title:       l.title,
+      slug,
+      content:     cleanContent,
+      post_type:   'post',
+      post_status: l.status === 'publish' ? 'publish' : 'draft',
+      post_date:   l.postDate,
+      menu_order:  parseInt(l.lessonOrder) || idx,
+      categories,
+      postmeta,
+    };
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// PURE FUNCTION: transformProducts
+// ═══════════════════════════════════════════════════
+function transformProducts(products) {
+  const usedSlugs = new Set();
+  let postId = 3001;
+
+  return products.map(p => {
+    let slug;
+    if (p.slug && p.slug.trim() && !usedSlugs.has(p.slug.trim())) {
+      slug = p.slug.trim();
+      usedSlugs.add(slug);
+    } else {
+      slug = generateSlug(p.title, usedSlugs);
+    }
+    return {
+      _postId:     postId++,
+      _resolved:   true,
+      _hasQuiz:    false,
+      title:       p.title,
+      slug,
+      content:     p.content || '',
+      post_type:   'wg_angebot',
+      post_status: p.status === 'publish' ? 'publish' : 'draft',
+      post_date:   p.postDate,
+      menu_order:  0,
+      categories:  [],
+      postmeta:    p.allMeta,
+    };
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// PURE FUNCTION: validateData
+// ═══════════════════════════════════════════════════
+function validateData(categories, lessons, products) {
+  const errors = [], warnings = [];
+
+  // ERROR: lessons without section
+  const unresolved = lessons.filter(l => !l._resolved);
+  if (unresolved.length)
+    errors.push({ msg: `${unresolved.length} Lektionen ohne zugeordnete Sektion`, detail: unresolved.map(l => l.title).join(', ') });
+
+  // ERROR: duplicate slugs across all items
+  const slugCount = {};
+  [...lessons, ...products].forEach(i => { slugCount[i.slug] = (slugCount[i.slug]||0)+1; });
+  const dups = Object.entries(slugCount).filter(([,c]) => c > 1);
+  if (dups.length)
+    errors.push({ msg: `${dups.length} doppelte Slugs`, detail: dups.map(([s]) => s).join(', ') });
+
+  // ERROR: empty categories (no lesson uses them)
+  const usedSlugs = new Set(lessons.flatMap(l => l.categories.map(c => c.slug)));
+  const emptyCats = categories.filter(c => !usedSlugs.has(c.slug));
+  if (emptyCats.length)
+    errors.push({ msg: `${emptyCats.length} leere Kategorien (keine Lektionen zugeordnet)`, detail: emptyCats.map(c => c.name).join(', ') });
+
+  // WARNING: lessons without quiz (normal)
+  const noQuiz = lessons.filter(l => !l._hasQuiz).length;
+  if (noQuiz)
+    warnings.push({ msg: `${noQuiz} Lektionen ohne [chained-quiz] Shortcode (normal, nicht jede Lektion hat einen)`, detail: '' });
+
+  // WARNING: menu_order = 0
+  const order0 = lessons.filter(l => l.menu_order === 0).length;
+  if (order0)
+    warnings.push({ msg: `${order0} Lektionen mit menu_order = 0`, detail: '' });
+
+  // WARNING: products without content
+  const noContent = products.filter(p => !p.content || p.content.trim().length < 5);
+  if (noContent.length)
+    warnings.push({ msg: `${noContent.length} Angebote ohne Inhalt`, detail: noContent.map(p => p.title).join(', ') });
+
+  return { valid: errors.length === 0, errors, warnings };
+}
+
+// ═══════════════════════════════════════════════════
+// PURE FUNCTION: generateWXR
+// ═══════════════════════════════════════════════════
+function generateWXR(categories, lessons, products) {
+  const pubDate  = new Date().toUTCString();
+  const postDate = new Date().toISOString().replace('T',' ').substring(0,19);
+
+  const lines = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<rss version="2.0"',
+    '  xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/"',
+    '  xmlns:content="http://purl.org/rss/1.0/modules/content/"',
+    '  xmlns:wfw="http://wellformedweb.org/CommentAPI/"',
+    '  xmlns:dc="http://purl.org/dc/elements/1.1/"',
+    '  xmlns:wp="http://wordpress.org/export/1.2/">',
+    '<channel>',
+    '  <title>webGefährte Migration Export</title>',
+    '  <link>https://example.com</link>',
+    '  <description>WXR generated by webGefährte Migration Tool</description>',
+    `  <pubDate>${pubDate}</pubDate>`,
+    '  <wp:wxr_version>1.2</wp:wxr_version>',
+    '  <wp:base_site_url>https://example.com</wp:base_site_url>',
+    '  <wp:base_blog_url>https://example.com</wp:base_blog_url>',
+    '',
+    '  <!-- ══ CATEGORIES ══ -->',
+  ];
+
+  categories.forEach(cat => {
+    lines.push('  <wp:category>');
+    lines.push(`    <wp:term_id>${cat.term_id}</wp:term_id>`);
+    lines.push(`    <wp:category_nicename>${xmlEsc(cat.slug)}</wp:category_nicename>`);
+    lines.push(`    <wp:category_parent>${xmlEsc(cat.parent_slug)}</wp:category_parent>`);
+    lines.push(`    <wp:cat_name><![CDATA[${cat.name}]]></wp:cat_name>`);
+    lines.push('  </wp:category>');
+  });
+
+  const writeItem = item => {
+    lines.push('  <item>');
+    lines.push(`    <title>${xmlEsc(item.title)}</title>`);
+    lines.push(`    <link>https://example.com/${xmlEsc(item.slug)}/</link>`);
+    lines.push(`    <pubDate>${pubDate}</pubDate>`);
+    lines.push('    <dc:creator><![CDATA[admin]]></dc:creator>');
+    lines.push(`    <content:encoded><![CDATA[${item.content||''}]]></content:encoded>`);
+    lines.push('    <excerpt:encoded><![CDATA[]]></excerpt:encoded>');
+    lines.push(`    <wp:post_id>${item._postId}</wp:post_id>`);
+    lines.push(`    <wp:post_date><![CDATA[${item.post_date||postDate}]]></wp:post_date>`);
+    lines.push(`    <wp:post_date_gmt><![CDATA[${item.post_date||postDate}]]></wp:post_date_gmt>`);
+    lines.push('    <wp:comment_status><![CDATA[closed]]></wp:comment_status>');
+    lines.push('    <wp:ping_status><![CDATA[closed]]></wp:ping_status>');
+    lines.push(`    <wp:post_name><![CDATA[${item.slug}]]></wp:post_name>`);
+    lines.push(`    <wp:status><![CDATA[${item.post_status}]]></wp:status>`);
+    lines.push('    <wp:post_parent>0</wp:post_parent>');
+    lines.push(`    <wp:menu_order>${item.menu_order}</wp:menu_order>`);
+    lines.push(`    <wp:post_type><![CDATA[${item.post_type}]]></wp:post_type>`);
+    lines.push('    <wp:post_password><![CDATA[]]></wp:post_password>');
+    lines.push('    <wp:is_sticky>0</wp:is_sticky>');
+    (item.categories||[]).forEach(cat => {
+      lines.push(`    <category domain="category" nicename="${xmlEsc(cat.slug)}"><![CDATA[${cat.name}]]></category>`);
+    });
+    Object.entries(item.postmeta||{}).forEach(([k,v]) => {
+      lines.push('    <wp:postmeta>');
+      lines.push(`      <wp:meta_key><![CDATA[${k}]]></wp:meta_key>`);
+      lines.push(`      <wp:meta_value><![CDATA[${v}]]></wp:meta_value>`);
+      lines.push('    </wp:postmeta>');
+    });
+    lines.push('  </item>');
+  };
+
+  lines.push('', '  <!-- ══ LEKTIONEN (post) ══ -->');
+  lessons.forEach(writeItem);
+  lines.push('', '  <!-- ══ ANGEBOTE (wg_angebot) ══ -->');
+  products.forEach(writeItem);
+
+  lines.push('</channel>', '</rss>');
+  return lines.join('\n');
+}
+
+// ═══════════════════════════════════════════════════
+// PIPELINE  – runs every time the user advances past step 1
+// ═══════════════════════════════════════════════════
+function runPipeline() {
+  const { sectionMap, termIdToSlug } = buildSectionMap(S.files.kurse);
+  S.sectionMap   = sectionMap;
+  S.termIdToSlug = termIdToSlug;
+
+  const rawLessons  = parseLessons(S.files.lessons);
+  const rawProducts = parseProducts(S.files.angebote);
+  const merged      = mergeData(rawLessons, sectionMap, termIdToSlug);
+
+  S.categories          = buildCategoryList(merged);
+  S.transformedLessons  = transformLessons(merged);
+  S.transformedProducts = transformProducts(rawProducts);
+}
+
+// ═══════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════
+function goToStep(n) {
+  if (n >= 2 && !['lessons','kurse','angebote'].every(k => S.files[k])) {
+    showUploadError('Bitte alle 3 Dateien hochladen.');
+    return;
+  }
+  if (n === 2) { runPipeline(); renderPreview(); }
+  if (n === 3) { runValidation(); }
+  if (n === 4) { prepareExport(); }
+
+  S.step = n;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + n).classList.add('active');
+  document.querySelectorAll('.step').forEach(s => {
+    const sn = +s.dataset.step;
+    s.classList.toggle('active', sn === n);
+    s.classList.toggle('done',   sn < n);
+  });
+  window.scrollTo(0, 0);
+}
+
+// ═══════════════════════════════════════════════════
+// UPLOAD
+// ═══════════════════════════════════════════════════
+function triggerFile(t)           { document.getElementById('file-' + t).click(); }
+function onDragOver(e, t)         { e.preventDefault(); document.getElementById('zone-' + t).classList.add('drag-over'); }
+function onDragLeave(t)           { document.getElementById('zone-' + t).classList.remove('drag-over'); }
+function onDrop(e, t)             { e.preventDefault(); onDragLeave(t); const f = e.dataTransfer.files[0]; if (f) processFile(t, f); }
+function loadFile(type, input)    { if (input.files[0]) processFile(type, input.files[0]); }
+
+const EXPECTED_TYPES = { lessons: 'mpcs-lesson', kurse: 'mpcs-course', angebote: 'memberpressproduct' };
+
+function processFile(type, file) {
+  hideUploadError();
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const doc = new DOMParser().parseFromString(e.target.result, 'application/xml');
+      const err = doc.querySelector('parsererror');
+      if (err) throw new Error('XML-Fehler: ' + err.textContent.substring(0, 120));
+
+      // Check post_type matches expected slot
+      const foundTypes = [...new Set(Array.from(doc.querySelectorAll('post_type')).map(el => el.textContent.trim()).filter(Boolean))];
+      const expected   = EXPECTED_TYPES[type];
+      const count      = foundTypes.filter(t => t === expected).length;
+
+      if (foundTypes.length && !foundTypes.includes(expected)) {
+        showUploadError(`Falsche Datei im Slot "${type}"? Erwartet "${expected}", gefunden: "${foundTypes.join(', ')}". Bitte die richtige Datei hochladen.`);
+        document.getElementById('zone-' + type).classList.add('error');
+        return;
+      }
+
+      S.files[type] = doc;
+      document.getElementById('zone-' + type).classList.remove('error');
+      document.getElementById('zone-' + type).classList.add('loaded');
+      document.getElementById('icon-' + type).textContent  = '✅';
+      document.getElementById('status-' + type).textContent = `${file.name} (${count} Einträge)`;
+      document.getElementById('badge-' + type).style.display = 'inline-block';
+    } catch(err) {
+      showUploadError(err.message);
+      document.getElementById('zone-' + type).classList.add('error');
+    }
+    checkReady();
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function checkReady() {
+  document.getElementById('btn-next-1').disabled = !['lessons','kurse','angebote'].every(k => S.files[k]);
+}
+function showUploadError(msg) {
+  document.getElementById('upload-error').style.display = 'flex';
+  document.getElementById('upload-error-msg').textContent = msg;
+}
+function hideUploadError() {
+  document.getElementById('upload-error').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER: PREVIEW  (Step 2)
+// ═══════════════════════════════════════════════════
 function renderPreview() {
-  parse();
-  const p = S.parsed;
-  const total = p.angebote.length + p.kurse.length + p.sektionen2.length + p.lektionen.length;
-  document.getElementById('stat-angebote').textContent = p.angebote.length;
-  document.getElementById('stat-kurse').textContent = p.kurse.length;
-  document.getElementById('stat-sektionen2').textContent = p.sektionen2.length;
-  document.getElementById('stat-lektionen').textContent = p.lektionen.length;
-  document.getElementById('stat-total').textContent = total;
+  const lessons  = S.transformedLessons;
+  const products = S.transformedProducts;
+  const cats     = S.categories;
+  const courses  = cats.filter(c => !c.parent_slug);
+  const sections = cats.filter(c =>  c.parent_slug);
+  const quizzes  = lessons.filter(l => l._hasQuiz).length;
 
-  // Angebote tab
-  const ta = document.getElementById('tbody-angebote');
-  ta.innerHTML = p.angebote.length ? p.angebote.map((a,i) => {
-    const m = a.mapped;
-    const mwstStr = a.price > 0 ? '+' + m.mwst_betrag.toFixed(2) + '€' : '-';
-    const endStr = a.price > 0 ? m.endpreis.toFixed(2) + '€' : '-';
-    return `<tr>
-      <td style="color:var(--gray-400);font-size:11px">${i+1}</td>
-      <td><strong>${esc(a.title)}</strong></td>
-      <td>${a.price > 0 ? a.price.toFixed(2) + ' €' : '<span class="tag tag-gray">0 / Gratis</span>'}</td>
-      <td><span class="tag tag-gray">${a.periodType||'—'}</span></td>
-      <td><span class="tag tag-blue">${m.intervall}</span></td>
-      <td><span class="tag tag-green">${m.zugang}</span></td>
-      <td><span class="tag tag-gray">${m.rechnungsstellung}</span></td>
-      <td>${mwstStr}</td>
-      <td><strong>${endStr}</strong></td>
-      <td>${a.trial ? `<span class="tag tag-orange">Trial ${a.trialDays}d</span>` : '-'}</td>
-    </tr>`;
-  }).join('') : '<tr><td colspan="10" style="text-align:center;color:var(--gray-400);padding:20px">Keine memberpressproduct-Posts gefunden</td></tr>';
+  document.getElementById('stat-kurse').textContent     = courses.length;
+  document.getElementById('stat-sektionen').textContent = sections.length;
+  document.getElementById('stat-lektionen').textContent = lessons.length;
+  document.getElementById('stat-angebote').textContent  = products.length;
+  document.getElementById('stat-quizzes').textContent   = quizzes;
 
-  // Kurse tab
-  const tk = document.getElementById('tbody-kurse');
-  tk.innerHTML = p.kurse.length ? p.kurse.map((k,i) => `<tr>
-    <td style="color:var(--gray-400);font-size:11px">${i+1}</td>
-    <td><strong>${esc(k.title)}</strong></td>
-    <td style="font-family:monospace;font-size:11px">${esc(k.slug)}</td>
-    <td><span class="tag ${k.status==='publish'?'tag-green':'tag-orange'}">${k.status}</span></td>
-    <td style="font-family:monospace;color:var(--gray-400)">${k.id}</td>
-  </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--gray-400);padding:20px">Keine mpcs-course-Posts gefunden</td></tr>';
-
-  // Sektionen2 tab
-  const hint = document.getElementById('no-sections-hint');
-  const ts = document.getElementById('tbody-sektionen2');
-  if (p.sektionen2.length) {
-    hint.style.display = 'none';
-    ts.innerHTML = p.sektionen2.map((s,i) => `<tr>
-      <td style="color:var(--gray-400);font-size:11px">${i+1}</td>
-      <td><strong>${esc(s.title)}</strong></td>
-      <td style="font-family:monospace;font-size:11px">${esc(s.slug)}</td>
-      <td style="font-family:monospace;color:var(--gray-400)">${s.parent||'—'}</td>
-      <td><span class="tag ${s.status==='publish'?'tag-green':'tag-orange'}">${s.status}</span></td>
-      <td style="font-family:monospace;color:var(--gray-400)">${s.id}</td>
-    </tr>`).join('');
+  // ── Category Tree ──────────────────────────────
+  const treeEl = document.getElementById('cat-tree-wrap');
+  if (!courses.length) {
+    treeEl.innerHTML = '<div class="alert alert-warn" style="margin-top:0">⚠️ Keine Kurse/Sektionen erkannt. Überprüfe die Sections.xml – sie muss <code>&lt;category domain="mpcs-course-categories"&gt;</code> Einträge enthalten.</div>';
   } else {
-    hint.style.display = 'flex';
-    ts.innerHTML = '';
+    const lessonsIn = slug => lessons.filter(l => l.categories.some(c => c.slug === slug)).length;
+    treeEl.innerHTML = courses.map(course => {
+      const sub = sections.filter(s => s.parent_slug === course.slug);
+      const subHtml = sub.map(s => {
+        const n = lessonsIn(s.slug);
+        return `<div class="cat-section-row">
+          <span>${esc(s.name)}</span>
+          <span class="tag tag-blue">${n} Lektion${n!==1?'en':''}</span>
+          <span style="font-size:11px;color:var(--gray-400);font-family:monospace">${esc(s.slug)}</span>
+        </div>`;
+      }).join('');
+      const total = lessonsIn(course.slug);
+      return `<div style="margin-bottom:18px">
+        <div class="cat-course-row">📚 ${esc(course.name)}
+          <span class="tag tag-green">${total} Lektionen gesamt</span>
+          <span style="font-size:11px;color:var(--gray-400);font-family:monospace">${esc(course.slug)}</span>
+        </div>
+        ${subHtml || '<div class="cat-section-row" style="color:var(--gray-400)">Keine Sektionen</div>'}
+      </div>`;
+    }).join('');
   }
 
-  // Lektionen tab
-  const tl = document.getElementById('tbody-lektionen');
-  tl.innerHTML = p.lektionen.length ? p.lektionen.map((l,i) => `<tr>
-    <td style="color:var(--gray-400);font-size:11px">${i+1}</td>
-    <td><strong>${esc(l.title)}</strong></td>
-    <td style="font-family:monospace;font-size:11px">${esc(l.slug)}</td>
-    <td style="font-family:monospace;color:var(--gray-400)">${l.sectionId||'—'}</td>
-    <td>${l.lessonOrder}</td>
-    <td><span class="tag ${l.status==='publish'?'tag-green':'tag-orange'}">${l.status}</span></td>
-  </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:20px">Keine mpcs-lesson-Posts gefunden</td></tr>';
+  // ── Lessons Table ──────────────────────────────
+  document.getElementById('tbody-lessons-prev').innerHTML = lessons.length
+    ? lessons.map((l,i) => `<tr>
+        <td style="color:var(--gray-400);font-size:11px">${i+1}</td>
+        <td><strong>${esc(l.title)}</strong></td>
+        <td>${l.categories[0] ? `<span class="tag tag-blue">${esc(l.categories[0].name)}</span>` : '<span class="tag tag-red">⚠️ fehlt</span>'}</td>
+        <td>${l.categories[1] ? `<span class="tag tag-green">${esc(l.categories[1].name)}</span>` : '—'}</td>
+        <td style="font-family:monospace">${l.menu_order}</td>
+        <td>${l._hasQuiz ? '<span class="tag tag-orange">✓ Quiz</span>' : '<span class="tag tag-gray">–</span>'}</td>
+        <td style="font-family:monospace;font-size:11px">${esc(l.slug)}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--gray-400)">Keine Lektionen gefunden</td></tr>';
+
+  // ── Angebote Table ─────────────────────────────
+  document.getElementById('tbody-angebote-prev').innerHTML = products.length
+    ? products.map((p,i) => `<tr>
+        <td style="color:var(--gray-400);font-size:11px">${i+1}</td>
+        <td><strong>${esc(p.title)}</strong></td>
+        <td><span class="tag tag-blue">wg_angebot</span></td>
+        <td style="font-family:monospace;font-size:11px">${esc(p.slug)}</td>
+        <td style="font-size:11px;color:var(--gray-500)">${Object.keys(p.postmeta).length} Felder</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--gray-400)">Keine Angebote gefunden</td></tr>';
 }
 
 function showTab(id, el) {
@@ -588,334 +844,71 @@ function showTab(id, el) {
   if (el) el.classList.add('active');
 }
 
-// ===== PLUGIN GENERATION =====
-function generateAndGoTo4() {
-  const cptA = v('cpt-angebote') || 'angebote';
-  const cptK = v('cpt-kurse') || 'mpcs-course';
-  const cptS = v('cpt-sections2') || 'mpcs-section';
-  const cptL = v('cpt-lektionen') || 'mpcs-lesson';
-  const mwst = v('map-mwst') || '19';
-  const zahlung = v('map-zahlungsform') || 'rechnung';
-  const type = v('map-type') || 'abo';
-  const p = S.parsed;
+// ═══════════════════════════════════════════════════
+// RENDER: VALIDATION  (Step 3)
+// ═══════════════════════════════════════════════════
+function runValidation() {
+  S.validation = validateData(S.categories, S.transformedLessons, S.transformedProducts);
 
-  const angData = p.angebote.map(a => ({
-    title: a.title, slug: a.slug, status: a.status === 'publish' ? 'publish' : 'draft',
-    content: truncContent(a.content),
-    preis_netto: a.price, mwst_satz: parseInt(mwst),
-    mwst_betrag: a.mapped.mwst_betrag, endpreis: a.mapped.endpreis,
-    intervall: a.mapped.intervall, rechnungsstellung: a.mapped.rechnungsstellung,
-    zugang: a.mapped.zugang, type, zahlungsform: zahlung,
-    trial: a.trial, trial_days: a.trialDays, old_id: a.id,
-  }));
+  const { valid, errors, warnings } = S.validation;
+  const lessons  = S.transformedLessons;
+  const products = S.transformedProducts;
+  const cats     = S.categories;
 
-  const kurseData = p.kurse.map(k => ({
-    title: k.title, slug: k.slug, status: k.status === 'publish' ? 'publish' : 'draft',
-    content: truncContent(k.content), menu_order: k.menuOrder, old_id: k.id,
-  }));
+  // Summary bar
+  const resolved = lessons.filter(l => l._resolved).length;
+  document.getElementById('val-summary-bar').innerHTML = [
+    `${resolved === lessons.length ? '✅' : '⚠️'} <strong>${resolved} / ${lessons.length}</strong> Lektionen zugeordnet`,
+    `✅ <strong>${cats.filter(c=>!c.parent_slug).length}</strong> Kurse`,
+    `✅ <strong>${cats.filter(c=> c.parent_slug).length}</strong> Sektionen`,
+    `✅ <strong>${products.length}</strong> Angebote`,
+    `✅ <strong>${lessons.filter(l=>l._hasQuiz).length}</strong> Quizzes extrahiert`,
+  ].map(s => `<span>${s}</span>`).join('');
 
-  const sektData = p.sektionen2.map(s => ({
-    title: s.title, slug: s.slug, status: s.status === 'publish' ? 'publish' : 'draft',
-    content: truncContent(s.content), old_parent_id: s.parent, menu_order: s.menuOrder, old_id: s.id,
-  }));
+  // Item list
+  const items = [];
+  errors.forEach(e   => items.push(`<li class="val-item"><span class="val-icon">❌</span><div class="val-msg"><strong>${esc(e.msg)}</strong>${e.detail?`<div class="val-detail">${esc(e.detail)}</div>`:''}</div></li>`));
+  warnings.forEach(w => items.push(`<li class="val-item"><span class="val-icon">⚠️</span><div class="val-msg">${esc(w.msg)}${w.detail?`<div class="val-detail">${esc(w.detail)}</div>`:''}</div></li>`));
+  if (valid) items.push('<li class="val-item"><span class="val-icon">✅</span><div class="val-msg"><strong>Alle Pflichtprüfungen bestanden – Export ist bereit.</strong></div></li>');
 
-  const lektData = p.lektionen.map(l => ({
-    title: l.title, slug: l.slug, status: l.status === 'publish' ? 'publish' : 'draft',
-    content: truncContent(l.content), old_section_id: l.sectionId, lesson_order: l.lessonOrder, old_id: l.id,
-  }));
-
-  const jsonA = phpJsonStr(JSON.stringify(angData, null, 2));
-  const jsonK = phpJsonStr(JSON.stringify(kurseData, null, 2));
-  const jsonS = phpJsonStr(JSON.stringify(sektData, null, 2));
-  const jsonL = phpJsonStr(JSON.stringify(lektData, null, 2));
-
-  pluginCode = `<?php
-/**
- * Plugin Name:  wG Migration – MemberPress zu Custom Platform
- * Description:  Einmalig ausführen! Migriert ${angData.length} Angebote, ${kurseData.length} Kurse, ${sektData.length} Sektionen, ${lektData.length} Lektionen.
- * Version:      1.0.0
- * Author:       webGefährte
- */
-
-if ( ! defined( 'ABSPATH' ) ) exit;
-
-define( 'WG_CPT_ANGEBOTE',  '${cptA}' );
-define( 'WG_CPT_KURSE',     '${cptK}' );
-define( 'WG_CPT_SEKTIONEN', '${cptS}' );
-define( 'WG_CPT_LEKTIONEN', '${cptL}' );
-
-// ─── Admin-Menü ──────────────────────────────────────────────────────────────
-
-add_action( 'admin_menu', function () {
-    add_management_page( 'wG Migration', 'wG Migration', 'manage_options', 'wg-migration', 'wg_migration_page' );
-} );
-
-function wg_migration_page() {
-    $result = null;
-    if ( isset( $_POST['wg_run'] ) && check_admin_referer( 'wg_nonce' ) ) {
-        $result = wg_run_migration();
-    }
-    $counts = [
-        'Angebote'  => count( wg_data_angebote() ),
-        'Kurse'     => count( wg_data_kurse() ),
-        'Sektionen' => count( wg_data_sektionen() ),
-        'Lektionen' => count( wg_data_lektionen() ),
-    ];
-    $total = array_sum( $counts );
-    ?>
-    <div class="wrap">
-    <h1>webGefährte – MemberPress Migration</h1>
-    <p>Migriert Inhalte aus dem alten MemberPress-System in die neue Custom-Platform.</p>
-    <table class="widefat fixed" style="max-width:400px;margin:16px 0">
-        <tr><th>Typ</th><th>Anzahl</th></tr>
-        <?php foreach ( $counts as $label => $cnt ) : ?>
-        <tr><td><?php echo esc_html($label); ?></td><td><strong><?php echo $cnt; ?></strong></td></tr>
-        <?php endforeach; ?>
-        <tr style="background:#f0f6e0"><td><strong>Gesamt</strong></td><td><strong><?php echo $total; ?></strong></td></tr>
-    </table>
-
-    <?php if ( $result ) : $ok = $result['success']; ?>
-    <div style="background:<?php echo $ok ? '#f0f6e0' : '#fff5f5'; ?>;border-left:4px solid <?php echo $ok ? '#92BB20' : '#ef4444'; ?>;padding:12px 16px;max-width:800px;border-radius:4px">
-        <strong><?php echo esc_html( $result['message'] ); ?></strong>
-        <details style="margin-top:8px"><summary style="cursor:pointer;font-size:13px">Log anzeigen (<?php echo count($result['details']); ?> Einträge)</summary>
-        <pre style="font-size:12px;max-height:400px;overflow:auto;margin-top:8px"><?php echo esc_html( implode( "\n", $result['details'] ) ); ?></pre>
-        </details>
-    </div>
-    <?php endif; ?>
-
-    <form method="post" style="margin-top:20px">
-        <?php wp_nonce_field( 'wg_nonce' ); ?>
-        <table class="form-table" style="max-width:500px">
-        <tr><th>Was migrieren?</th><td>
-            <label><input type="checkbox" name="do_angebote" value="1" checked> Angebote (+ Rollen)</label><br>
-            <label><input type="checkbox" name="do_kurse" value="1" checked> Kurse</label><br>
-            <label><input type="checkbox" name="do_sektionen" value="1" checked> Sektionen</label><br>
-            <label><input type="checkbox" name="do_lektionen" value="1" checked> Lektionen</label>
-        </td></tr>
-        <tr><th>Duplikate?</th><td><label><input type="checkbox" name="skip_existing" value="1"> Bereits vorhandene Posts überspringen (Slug-Prüfung)</label></td></tr>
-        </table>
-        <p>
-        <button type="submit" name="wg_run" class="button button-primary button-hero"
-            onclick="return confirm('Wirklich starten? Diese Aktion schreibt Daten in die WordPress-Datenbank.')">
-            🚀 Migration jetzt starten
-        </button>
-        </p>
-    </form>
-    <hr><p style="color:#999;font-size:12px">Nach erfolgreicher Migration: Plugin unter Plugins → deaktivieren und löschen.</p>
-    </div>
-    <?php
+  document.getElementById('val-list').innerHTML = items.join('');
+  document.getElementById('btn-to-export').disabled = !valid;
+  document.getElementById('val-block-msg').textContent = !valid ? `${errors.length} Fehler müssen zuerst behoben werden.` : '';
 }
 
-// ─── Migration ───────────────────────────────────────────────────────────────
-
-function wg_run_migration() {
-    $details = []; $errors = [];
-    $skip = ! empty( $_POST['skip_existing'] );
-
-    // 1. Kurse
-    $kurs_id_map = []; // old_id => new WP id
-    if ( ! empty( $_POST['do_kurse'] ) ) {
-        foreach ( wg_data_kurse() as $k ) {
-            if ( $skip && get_page_by_path( $k['slug'], OBJECT, WG_CPT_KURSE ) ) {
-                $ex = get_page_by_path( $k['slug'], OBJECT, WG_CPT_KURSE );
-                $kurs_id_map[ $k['old_id'] ] = $ex->ID;
-                $details[] = '[SKIP] Kurs: ' . $k['title']; continue;
-            }
-            $id = wp_insert_post( [
-                'post_title' => $k['title'], 'post_name' => $k['slug'],
-                'post_content' => $k['content'], 'post_status' => $k['status'],
-                'post_type' => WG_CPT_KURSE, 'menu_order' => $k['menu_order'],
-            ], true );
-            if ( is_wp_error( $id ) ) { $errors[] = 'Kurs-Fehler: ' . $k['title'] . ' – ' . $id->get_error_message(); continue; }
-            update_post_meta( $id, '_mpcs_course_status', 'enabled' );
-            update_post_meta( $id, '_mpcs_course_menu_order', $k['menu_order'] );
-            update_post_meta( $id, 'wg_migrated_from', 'mpcs_course_' . $k['old_id'] );
-            $kurs_id_map[ $k['old_id'] ] = $id;
-            $details[] = '[OK] Kurs: ' . $k['title'] . ' → ID ' . $id;
-        }
-    }
-
-    // 2. Sektionen
-    $sekt_id_map = [];
-    if ( ! empty( $_POST['do_sektionen'] ) ) {
-        foreach ( wg_data_sektionen() as $s ) {
-            if ( $skip && get_page_by_path( $s['slug'], OBJECT, WG_CPT_SEKTIONEN ) ) {
-                $ex = get_page_by_path( $s['slug'], OBJECT, WG_CPT_SEKTIONEN );
-                $sekt_id_map[ $s['old_id'] ] = $ex->ID;
-                $details[] = '[SKIP] Sektion: ' . $s['title']; continue;
-            }
-            $new_parent = isset( $kurs_id_map[ $s['old_parent_id'] ] ) ? $kurs_id_map[ $s['old_parent_id'] ] : 0;
-            $id = wp_insert_post( [
-                'post_title' => $s['title'], 'post_name' => $s['slug'],
-                'post_content' => $s['content'], 'post_status' => $s['status'],
-                'post_type' => WG_CPT_SEKTIONEN, 'post_parent' => $new_parent,
-                'menu_order' => $s['menu_order'],
-            ], true );
-            if ( is_wp_error( $id ) ) { $errors[] = 'Sektion-Fehler: ' . $s['title']; continue; }
-            update_post_meta( $id, '_mpcs_section_course_id', $new_parent );
-            update_post_meta( $id, 'wg_migrated_from', 'mpcs_section_' . $s['old_id'] );
-            $sekt_id_map[ $s['old_id'] ] = $id;
-            $details[] = '[OK] Sektion: ' . $s['title'] . ' → ID ' . $id . ' (Kurs: ' . $new_parent . ')';
-        }
-    }
-
-    // 3. Lektionen
-    if ( ! empty( $_POST['do_lektionen'] ) ) {
-        foreach ( wg_data_lektionen() as $l ) {
-            if ( $skip && get_page_by_path( $l['slug'], OBJECT, WG_CPT_LEKTIONEN ) ) {
-                $details[] = '[SKIP] Lektion: ' . $l['title']; continue;
-            }
-            // Sektion-ID remappen: erst sektionen2, dann direkt kurs als fallback
-            $new_sect_id = $l['old_section_id'];
-            if ( isset( $sekt_id_map[ $l['old_section_id'] ] ) ) $new_sect_id = $sekt_id_map[ $l['old_section_id'] ];
-            elseif ( isset( $kurs_id_map[ $l['old_section_id'] ] ) ) $new_sect_id = $kurs_id_map[ $l['old_section_id'] ];
-            $id = wp_insert_post( [
-                'post_title' => $l['title'], 'post_name' => $l['slug'],
-                'post_content' => $l['content'], 'post_status' => $l['status'],
-                'post_type' => WG_CPT_LEKTIONEN, 'menu_order' => $l['lesson_order'],
-            ], true );
-            if ( is_wp_error( $id ) ) { $errors[] = 'Lektion-Fehler: ' . $l['title']; continue; }
-            update_post_meta( $id, '_mpcs_lesson_status', 'enabled' );
-            update_post_meta( $id, '_mpcs_lesson_section_id', $new_sect_id );
-            update_post_meta( $id, '_mpcs_lesson_lesson_order', $l['lesson_order'] );
-            update_post_meta( $id, 'wg_migrated_from', 'mpcs_lesson_' . $l['old_id'] );
-            $details[] = '[OK] Lektion: ' . $l['title'] . ' → ID ' . $id . ' (Sektion: ' . $new_sect_id . ')';
-        }
-    }
-
-    // 4. Angebote
-    if ( ! empty( $_POST['do_angebote'] ) ) {
-        foreach ( wg_data_angebote() as $a ) {
-            if ( $skip && get_page_by_path( $a['slug'], OBJECT, WG_CPT_ANGEBOTE ) ) {
-                $details[] = '[SKIP] Angebot: ' . $a['title']; continue;
-            }
-            $id = wp_insert_post( [
-                'post_title' => $a['title'], 'post_name' => $a['slug'],
-                'post_content' => $a['content'], 'post_status' => $a['status'],
-                'post_type' => WG_CPT_ANGEBOTE,
-            ], true );
-            if ( is_wp_error( $id ) ) { $errors[] = 'Angebot-Fehler: ' . $a['title']; continue; }
-            $fields = [ 'preis_netto', 'mwst_satz', 'mwst_betrag', 'endpreis', 'intervall',
-                        'rechnungsstellung', 'zugang', 'type', 'zahlungsform' ];
-            foreach ( $fields as $f ) update_post_meta( $id, $f, $a[ $f ] );
-            update_post_meta( $id, 'mehrwertsteuer', (string) $a['mwst_satz'] );
-            update_post_meta( $id, 'wg_migrated_from', 'mepr_' . $a['old_id'] );
-            if ( $a['trial'] ) update_post_meta( $id, 'trial_days', $a['trial_days'] );
-            // Subscriber-Rolle anlegen
-            $role = 'abonnent_' . $id;
-            if ( ! get_role( $role ) ) add_role( $role, 'Abonnent #' . $id, [ 'read' => true, $role => true ] );
-            $admin = get_role( 'administrator' );
-            if ( $admin && ! $admin->has_cap( $role ) ) $admin->add_cap( $role );
-            $details[] = '[OK] Angebot: ' . $a['title'] . ' → ID ' . $id . ' | Rolle: ' . $role;
-        }
-    }
-
-    if ( ! empty( $errors ) ) {
-        return [ 'success' => false, 'message' => '⚠️ Migration mit ' . count($errors) . ' Fehlern.', 'details' => array_merge($details,$errors) ];
-    }
-    return [ 'success' => true, 'message' => '✅ Erfolgreich! ' . count($details) . ' Einträge verarbeitet.', 'details' => $details ];
+// ═══════════════════════════════════════════════════
+// RENDER: EXPORT  (Step 4)
+// ═══════════════════════════════════════════════════
+function prepareExport() {
+  S.wxrContent = generateWXR(S.categories, S.transformedLessons, S.transformedProducts);
+  const kb = Math.round(S.wxrContent.length / 1024);
+  document.getElementById('export-summary').innerHTML = `
+    <div class="alert alert-success">
+      ✅ <div>
+        <strong>Export fertig:</strong>
+        ${S.transformedLessons.length} Lektionen &nbsp;·&nbsp;
+        ${S.transformedProducts.length} Angebote &nbsp;·&nbsp;
+        ${S.categories.length} Kategorien &nbsp;·&nbsp;
+        ${kb} KB
+      </div>
+    </div>`;
 }
 
-// ─── Daten ───────────────────────────────────────────────────────────────────
-
-function wg_data_angebote() {
-    static $d = null;
-    if ( $d === null ) $d = json_decode( ${jsonA}, true ) ?: [];
-    return $d;
-}
-
-function wg_data_kurse() {
-    static $d = null;
-    if ( $d === null ) $d = json_decode( ${jsonK}, true ) ?: [];
-    return $d;
-}
-
-function wg_data_sektionen() {
-    static $d = null;
-    if ( $d === null ) $d = json_decode( ${jsonS}, true ) ?: [];
-    return $d;
-}
-
-function wg_data_lektionen() {
-    static $d = null;
-    if ( $d === null ) $d = json_decode( ${jsonL}, true ) ?: [];
-    return $d;
-}
-`;
-
-  document.getElementById('php-preview').textContent =
-    pluginCode.substring(0, 4000) + '\n\n// ... [' + pluginCode.length.toLocaleString() + ' Zeichen gesamt, vollständig beim Download]';
-  goToStep(4);
-}
-
-// ===== METHOD SELECTOR =====
-function selectMethod(m) {
-  document.getElementById('mc-php').classList.toggle('selected', m === 'php');
-  document.getElementById('mc-rest').classList.toggle('selected', m === 'rest');
-  document.getElementById('panel-php').style.display = m === 'php' ? 'block' : 'none';
-  document.getElementById('panel-rest').style.display = m === 'rest' ? 'block' : 'none';
-}
-
-// ===== DOWNLOAD / COPY =====
-function downloadPlugin() {
-  if (!pluginCode) { alert('Bitte zuerst generieren!'); return; }
+function downloadWXR() {
+  if (!S.wxrContent) { alert('Kein Export vorhanden – bitte zuerst generieren.'); return; }
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([pluginCode], { type: 'text/plain;charset=utf-8' }));
-  a.download = 'wg-migration.php';
+  a.href = URL.createObjectURL(new Blob([S.wxrContent], { type: 'application/xml;charset=utf-8' }));
+  a.download = 'wg-migration-export.xml';
   a.click();
-}
-function copyCode() {
-  if (!pluginCode) return;
-  navigator.clipboard.writeText(pluginCode).then(() => alert('✅ Code in Zwischenablage kopiert!'));
+  URL.revokeObjectURL(a.href);
 }
 
-// ===== REST API MIGRATION =====
-async function runRestMigration() {
-  const url = (v('wp-url')||'').replace(/\/$/,'');
-  const user = v('wp-user'); const pass = v('wp-app-password');
-  if (!url||!user||!pass) { alert('URL, Benutzername und App-Passwort in Schritt 3 eintragen!'); return; }
-  const auth = btoa(user + ':' + pass);
-  const log = document.getElementById('rest-log');
-  const prog = document.getElementById('rest-progress');
-  log.style.display = 'block'; log.textContent = '';
-  document.getElementById('rest-progress-wrap').style.display = 'block';
-  document.getElementById('btn-run-rest').disabled = true;
-
-  const p = S.parsed;
-  const items = [
-    ...p.kurse.map(k=>({...k,_cpt:v('cpt-kurse')||'mpcs-course',_t:'Kurs'})),
-    ...p.sektionen2.map(s=>({...s,_cpt:v('cpt-sections2')||'mpcs-section',_t:'Sektion'})),
-    ...p.lektionen.map(l=>({...l,_cpt:v('cpt-lektionen')||'mpcs-lesson',_t:'Lektion'})),
-    ...p.angebote.map(a=>({...a,_cpt:v('cpt-angebote')||'angebote',_t:'Angebot'})),
-  ];
-
-  let done = 0;
-  for (const item of items) {
-    const body = { title: item.title, slug: item.slug, status: item.status==='publish'?'publish':'draft',
-                   content: (item.content||'').substring(0,2000), type: item._cpt };
-    try {
-      const r = await fetch(`${url}/wp-json/wp/v2/${item._cpt}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Basic ' + auth },
-        body: JSON.stringify(body)
-      });
-      const d = await r.json();
-      log.textContent += r.ok ? `✅ [${item._t}] ${item.title} → ID ${d.id}\n` : `❌ [${item._t}] ${item.title}: ${d.message||r.statusText}\n`;
-    } catch(e) { log.textContent += `❌ Netzwerkfehler: ${item.title}\n`; }
-    done++;
-    prog.style.width = Math.round(done/items.length*100) + '%';
-    document.getElementById('rest-progress-label').textContent = done + ' / ' + items.length;
-    log.scrollTop = log.scrollHeight;
-    await new Promise(r => setTimeout(r, 150));
-  }
-  log.textContent += `\n🎉 Fertig! ${done}/${items.length} verarbeitet.`;
-  document.getElementById('btn-run-rest').disabled = false;
+function copyWXR() {
+  if (!S.wxrContent) return;
+  navigator.clipboard.writeText(S.wxrContent)
+    .then(() => alert('✅ WXR-XML in Zwischenablage kopiert!'))
+    .catch(() => alert('Kopieren fehlgeschlagen – bitte herunterladen.'));
 }
-
-// ===== UTILS =====
-const v = id => document.getElementById(id)?.value || '';
-const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const truncContent = s => (s||'').substring(0, 8000).replace(/'/g, "\\'").replace(/\\/g,'\\\\');
-const phpJsonStr = s => "'" + s.replace(/\\/g,'\\\\').replace(/'/g,"\\'") + "'";
 </script>
 </body>
 </html>
