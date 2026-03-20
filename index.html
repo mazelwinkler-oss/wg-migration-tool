@@ -117,49 +117,56 @@
 <!-- ══════════ STEP 1: UPLOAD ══════════ -->
 <div class="page active" id="page-1">
   <div class="card">
-    <h2>📁 WordPress-Export-Dateien hochladen</h2>
-    <p>Lade alle 3 WXR-XML-Dateien hoch. Reihenfolge egal – das Tool erkennt den Typ automatisch.</p>
+    <h2>📁 Kursdateien hochladen</h2>
+    <p>Exportiere deine Kursdateien aus der alten Plattform und ziehe sie hier rein – egal wie sie heißen, das Tool erkennt alles automatisch.</p>
 
-    <div class="upload-grid">
-      <div class="upload-zone" id="zone-lessons"
-           onclick="triggerFile('lessons')"
-           ondragover="onDragOver(event,'lessons')"
-           ondragleave="onDragLeave('lessons')"
-           ondrop="onDrop(event,'lessons')">
-        <input type="file" class="file-input" id="file-lessons" accept=".xml" onchange="loadFile('lessons',this)">
-        <div class="uz-icon" id="icon-lessons">📄</div>
-        <h3>Lessons.xml</h3>
-        <p id="status-lessons">post_type: mpcs-lesson</p>
-        <div id="badge-lessons" style="display:none" class="badge">✓ geladen</div>
+    <!-- Big single drop zone -->
+    <div id="zone-main"
+         style="border:2px dashed var(--gray-300);border-radius:12px;padding:48px 24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--gray-50);margin-top:20px"
+         onclick="document.getElementById('file-multi').click()"
+         ondragover="onMainDragOver(event)"
+         ondragleave="onMainDragLeave()"
+         ondrop="onMainDrop(event)">
+      <input type="file" id="file-multi" accept=".xml" multiple style="display:none" onchange="handleMultiFiles(this.files)">
+      <div style="font-size:48px;margin-bottom:12px" id="main-icon">📂</div>
+      <div style="font-size:16px;font-weight:700;color:var(--gray-800);margin-bottom:6px">XML-Dateien hier reinziehen</div>
+      <div style="font-size:13px;color:var(--gray-500)">oder klicken zum Auswählen – mehrere Dateien gleichzeitig möglich</div>
+    </div>
+
+    <!-- Detection status cards -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px">
+
+      <div id="card-lessons" style="border:1.5px solid var(--gray-200);border-radius:10px;padding:16px;background:var(--gray-50)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span id="icon-lessons" style="font-size:20px">⏳</span>
+          <span style="font-size:13px;font-weight:700;color:var(--gray-700)">Lektionen</span>
+        </div>
+        <div style="font-size:11px;color:var(--gray-500);font-family:monospace">mpcs-lesson</div>
+        <div id="status-lessons" style="font-size:12px;color:var(--gray-500);margin-top:4px">Noch nicht erkannt</div>
       </div>
 
-      <div class="upload-zone" id="zone-kurse"
-           onclick="triggerFile('kurse')"
-           ondragover="onDragOver(event,'kurse')"
-           ondragleave="onDragLeave('kurse')"
-           ondrop="onDrop(event,'kurse')">
-        <input type="file" class="file-input" id="file-kurse" accept=".xml" onchange="loadFile('kurse',this)">
-        <div class="uz-icon" id="icon-kurse">🗂️</div>
-        <h3>Sections.xml</h3>
-        <p id="status-kurse">post_type: mpcs-course (enthält Sektions-Taxonomie)</p>
-        <div id="badge-kurse" style="display:none" class="badge">✓ geladen</div>
+      <div id="card-kurse" style="border:1.5px solid var(--gray-200);border-radius:10px;padding:16px;background:var(--gray-50)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span id="icon-kurse" style="font-size:20px">⏳</span>
+          <span style="font-size:13px;font-weight:700;color:var(--gray-700)">Kurse & Sektionen</span>
+        </div>
+        <div style="font-size:11px;color:var(--gray-500);font-family:monospace">mpcs-course</div>
+        <div id="status-kurse" style="font-size:12px;color:var(--gray-500);margin-top:4px">Noch nicht erkannt</div>
       </div>
 
-      <div class="upload-zone" id="zone-angebote"
-           onclick="triggerFile('angebote')"
-           ondragover="onDragOver(event,'angebote')"
-           ondragleave="onDragLeave('angebote')"
-           ondrop="onDrop(event,'angebote')">
-        <input type="file" class="file-input" id="file-angebote" accept=".xml" onchange="loadFile('angebote',this)">
-        <div class="uz-icon" id="icon-angebote">💼</div>
-        <h3>Online-Angebote.xml</h3>
-        <p id="status-angebote">post_type: memberpressproduct</p>
-        <div id="badge-angebote" style="display:none" class="badge">✓ geladen</div>
+      <div id="card-angebote" style="border:1.5px solid var(--gray-200);border-radius:10px;padding:16px;background:var(--gray-50)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span id="icon-angebote" style="font-size:20px">⏳</span>
+          <span style="font-size:13px;font-weight:700;color:var(--gray-700)">Angebote</span>
+        </div>
+        <div style="font-size:11px;color:var(--gray-500);font-family:monospace">memberpressproduct</div>
+        <div id="status-angebote" style="font-size:12px;color:var(--gray-500);margin-top:4px">Noch nicht erkannt</div>
       </div>
+
     </div>
 
     <div class="alert alert-success" style="margin-top:18px">
-      🔒 Alle Dateien werden ausschließlich lokal im Browser verarbeitet – keine Daten werden hochgeladen.
+      🔒 Alles läuft lokal in deinem Browser – keine Daten werden hochgeladen oder gespeichert.
     </div>
     <div id="upload-error" style="display:none" class="alert alert-error">
       ❌ <span id="upload-error-msg"></span>
@@ -169,6 +176,7 @@
       <button class="btn btn-primary btn-lg" id="btn-next-1" onclick="goToStep(2)" disabled>
         Weiter zur Vorschau →
       </button>
+      <span id="upload-hint" style="font-size:13px;color:var(--gray-500)">Bitte alle 3 Dateitypen hochladen</span>
     </div>
   </div>
 </div>
@@ -712,54 +720,120 @@ function goToStep(n) {
 }
 
 // ═══════════════════════════════════════════════════
-// UPLOAD
+// UPLOAD – Auto-Erkennung
 // ═══════════════════════════════════════════════════
-function triggerFile(t)           { document.getElementById('file-' + t).click(); }
-function onDragOver(e, t)         { e.preventDefault(); document.getElementById('zone-' + t).classList.add('drag-over'); }
-function onDragLeave(t)           { document.getElementById('zone-' + t).classList.remove('drag-over'); }
-function onDrop(e, t)             { e.preventDefault(); onDragLeave(t); const f = e.dataTransfer.files[0]; if (f) processFile(t, f); }
-function loadFile(type, input)    { if (input.files[0]) processFile(type, input.files[0]); }
 
-const EXPECTED_TYPES = { lessons: 'mpcs-lesson', kurse: 'mpcs-course', angebote: 'memberpressproduct' };
+// Mapping: post_type im XML → interner Slot-Name
+const TYPE_MAP = {
+  'mpcs-lesson':          'lessons',
+  'mpcs-course':          'kurse',
+  'memberpressproduct':   'angebote',
+  // Erweiterbar für weitere Plattformen:
+  'sfwd-lessons':         'lessons',   // LearnDash
+  'sfwd-courses':         'kurse',     // LearnDash
+  'lesson':               'lessons',   // LifterLMS
+  'course':               'kurse',     // LifterLMS
+};
 
-function processFile(type, file) {
+function onMainDragOver(e) {
+  e.preventDefault();
+  const z = document.getElementById('zone-main');
+  z.style.borderColor     = 'var(--green)';
+  z.style.background      = 'var(--green-light)';
+  document.getElementById('main-icon').textContent = '📥';
+}
+function onMainDragLeave() {
+  const z = document.getElementById('zone-main');
+  z.style.borderColor = 'var(--gray-300)';
+  z.style.background  = 'var(--gray-50)';
+  document.getElementById('main-icon').textContent = '📂';
+}
+function onMainDrop(e) {
+  e.preventDefault();
+  onMainDragLeave();
+  handleMultiFiles(e.dataTransfer.files);
+}
+
+function handleMultiFiles(fileList) {
   hideUploadError();
+  Array.from(fileList).forEach(file => {
+    if (!file.name.endsWith('.xml') && !file.type.includes('xml')) {
+      showUploadError(`"${file.name}" ist keine XML-Datei – übersprungen.`);
+      return;
+    }
+    readAndAutoDetect(file);
+  });
+}
+
+function readAndAutoDetect(file) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
       const doc = new DOMParser().parseFromString(e.target.result, 'application/xml');
-      const err = doc.querySelector('parsererror');
-      if (err) throw new Error('XML-Fehler: ' + err.textContent.substring(0, 120));
+      if (doc.querySelector('parsererror'))
+        throw new Error(`"${file.name}" enthält ungültiges XML.`);
 
-      // Check post_type matches expected slot
-      const foundTypes = [...new Set(Array.from(doc.querySelectorAll('post_type')).map(el => el.textContent.trim()).filter(Boolean))];
-      const expected   = EXPECTED_TYPES[type];
-      const count      = foundTypes.filter(t => t === expected).length;
+      // Collect all post_types in this file
+      const foundTypes = [...new Set(
+        Array.from(doc.querySelectorAll('post_type'))
+          .map(el => el.textContent.trim())
+          .filter(Boolean)
+      )];
 
-      if (foundTypes.length && !foundTypes.includes(expected)) {
-        showUploadError(`Falsche Datei im Slot "${type}"? Erwartet "${expected}", gefunden: "${foundTypes.join(', ')}". Bitte die richtige Datei hochladen.`);
-        document.getElementById('zone-' + type).classList.add('error');
+      // Find which slot this file belongs to
+      let detectedSlot = null;
+      let detectedType = null;
+      for (const pt of foundTypes) {
+        if (TYPE_MAP[pt]) { detectedSlot = TYPE_MAP[pt]; detectedType = pt; break; }
+      }
+
+      if (!detectedSlot) {
+        showUploadError(`"${file.name}": Kein bekannter Kurs-Typ gefunden (gefunden: ${foundTypes.slice(0,3).join(', ')||'leer'}). Datei wird ignoriert.`);
         return;
       }
 
-      S.files[type] = doc;
-      document.getElementById('zone-' + type).classList.remove('error');
-      document.getElementById('zone-' + type).classList.add('loaded');
-      document.getElementById('icon-' + type).textContent  = '✅';
-      document.getElementById('status-' + type).textContent = `${file.name} (${count} Einträge)`;
-      document.getElementById('badge-' + type).style.display = 'inline-block';
+      const count = foundTypes.filter(t => t === detectedType).length;
+      S.files[detectedSlot] = doc;
+      markSlotReady(detectedSlot, file.name, count, detectedType);
+
     } catch(err) {
       showUploadError(err.message);
-      document.getElementById('zone-' + type).classList.add('error');
     }
     checkReady();
   };
   reader.readAsText(file, 'UTF-8');
 }
 
-function checkReady() {
-  document.getElementById('btn-next-1').disabled = !['lessons','kurse','angebote'].every(k => S.files[k]);
+function markSlotReady(slot, filename, count, detectedType) {
+  const icons   = { lessons: '📄', kurse: '🗂️', angebote: '💼' };
+  const labels  = { lessons: 'Lektionen', kurse: 'Kurse & Sektionen', angebote: 'Angebote' };
+
+  document.getElementById('icon-' + slot).textContent    = '✅';
+  document.getElementById('status-' + slot).textContent  = `${filename} · ${count} Einträge erkannt`;
+  document.getElementById('card-' + slot).style.border   = '1.5px solid var(--green)';
+  document.getElementById('card-' + slot).style.background = 'var(--green-light)';
 }
+
+function checkReady() {
+  const allReady = ['lessons','kurse','angebote'].every(k => S.files[k]);
+  document.getElementById('btn-next-1').disabled = !allReady;
+
+  const found   = ['lessons','kurse','angebote'].filter(k => S.files[k]).length;
+  const hintEl  = document.getElementById('upload-hint');
+  if (allReady) {
+    hintEl.textContent = '✅ Alle 3 Dateitypen erkannt – bereit!';
+    hintEl.style.color = 'var(--green-dark)';
+    hintEl.style.fontWeight = '600';
+    document.getElementById('zone-main').style.borderColor = 'var(--green)';
+    document.getElementById('zone-main').style.background  = 'var(--green-light)';
+    document.getElementById('main-icon').textContent = '✅';
+  } else {
+    hintEl.textContent = `${found} von 3 Dateitypen erkannt …`;
+    hintEl.style.color = 'var(--gray-500)';
+    hintEl.style.fontWeight = 'normal';
+  }
+}
+
 function showUploadError(msg) {
   document.getElementById('upload-error').style.display = 'flex';
   document.getElementById('upload-error-msg').textContent = msg;
