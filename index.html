@@ -3,876 +3,622 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>webGefährte – WXR Migration Tool</title>
+<title>webGefährte – Kurs-Migration</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════════════════════════════════
-   DESIGN SYSTEM – Light / Professional / Vercel-style
-   High contrast. Green accent. Clean white surfaces.
-═══════════════════════════════════════════════════ */
-:root {
-  --g:      #7faa17;
-  --g-lt:   #f2f8e3;
-  --g-mid:  #d4eaa0;
-  --ink:    #111811;
-  --ink2:   #3d4f35;
-  --ink3:   #8fa882;
-  --line:   #dde8d0;
-  --line2:  #c8dab0;
-  --bg:     #f9fbf6;
-  --white:  #ffffff;
-  --red:    #c0392b;
-  --amber:  #b45309;
-  --blue:   #1d4ed8;
-  --r:      10px;
-  --r-lg:   16px;
-}
-*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg);
-  color: var(--ink);
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: linear-gradient(135deg, #0d1a0a 0%, #060e04 50%, #0a1508 100%);
   min-height: 100vh;
+  color: white;
   -webkit-font-smoothing: antialiased;
 }
 
-/* ═══ HEADER ═══════════════════════════════════ */
+/* HEADER */
 .header {
-  background: var(--white);
-  padding: 0 36px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,20,8,0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(146,187,32,0.12);
+  padding: 0 32px;
+  display: flex; align-items: center; justify-content: space-between;
   height: 64px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  border-bottom: 1px solid var(--line);
 }
-.header-brand { display: flex; align-items: center; gap: 12px; }
 .header-logo {
-  width: 36px; height: 36px;
-  background: var(--g);
-  border-radius: 8px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 17px; font-weight: 800; letter-spacing: -0.3px;
+}
+.header-logo span { color: #92BB20; }
+.header-badge {
+  font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  padding: 3px 10px; border-radius: 20px; letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* STEP BAR */
+.steps-wrap {
+  padding: 28px 32px 0;
+  max-width: 980px; margin: 0 auto;
+}
+#steps {
+  display: flex; align-items: center; gap: 0;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(146,187,32,0.12);
+  border-radius: 14px;
+  padding: 6px;
+  overflow: hidden;
+}
+.step-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.08); flex-shrink: 0; }
+.step {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 9px 12px; border-radius: 9px; cursor: pointer;
+  transition: all 0.2s ease; font-size: 13px; font-weight: 600;
+  color: rgba(255,255,255,0.35);
+  user-select: none;
+}
+.step:hover { color: rgba(255,255,255,0.65); background: rgba(255,255,255,0.05); }
+.step.active { background: #92BB20; color: #0d1a0a; font-weight: 800; }
+.step.done { color: rgba(146,187,32,0.7); }
+.step.done:hover { color: #92BB20; }
+.step-num {
+  width: 20px; height: 20px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800;
+  background: rgba(255,255,255,0.08);
   flex-shrink: 0;
 }
-.header-title {
-  font-size: 15px; font-weight: 800;
-  color: var(--ink); letter-spacing: -.02em;
-}
-.header-sub {
-  font-size: 11px; color: var(--ink3);
-  margin-top: 1px; letter-spacing: .01em;
-}
-.header-badge {
-  display: flex; align-items: center; gap: 6px;
-  background: var(--g-lt);
-  border: 1px solid var(--line2);
-  color: var(--ink2); font-size: 11px; font-weight: 700;
-  padding: 5px 12px; border-radius: 20px; letter-spacing: .03em;
-}
-.header-badge::before {
-  content: ''; width: 6px; height: 6px;
-  background: var(--g); border-radius: 50%;
-}
+.step.active .step-num { background: rgba(13,26,10,0.3); }
+.step.done .step-num { background: rgba(146,187,32,0.2); }
 
-/* ═══ STEP BAR ══════════════════════════════════ */
-.steps-wrap {
-  background: var(--white);
-  border-bottom: 1px solid var(--line);
-  padding: 0 36px;
-  overflow-x: auto;
-}
-.steps {
-  display: flex; align-items: center; height: 56px;
-  max-width: 860px;
-}
-.step {
-  display: flex; align-items: center; gap: 9px;
-  padding: 7px 13px; border-radius: 20px; cursor: pointer;
-  font-size: 13px; font-weight: 500; color: var(--ink3);
-  transition: all .18s; white-space: nowrap; flex-shrink: 0;
-  text-decoration: none;
-}
-.step:hover { color: var(--ink2); background: var(--g-lt); }
-.step.active { color: var(--ink); font-weight: 700; background: var(--g-lt); }
-.step.done   { color: var(--g); }
-.step-num {
-  width: 22px; height: 22px; border-radius: 50%;
-  background: var(--line); border: 1.5px solid var(--line2);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 800; flex-shrink: 0;
-  transition: all .18s; color: var(--ink3);
-}
-.step.active .step-num { background: var(--g); border-color: var(--g); color: var(--white); }
-.step.done   .step-num { background: var(--g); border-color: var(--g); color: var(--white); }
-.step-sep { color: var(--ink3); font-size: 16px; padding: 0 2px; flex-shrink: 0; user-select: none; }
-.step-label-alert {
-  background: rgba(180,83,9,.12); color: var(--amber);
-  font-size: 10px; font-weight: 700;
-  padding: 2px 6px; border-radius: 4px; margin-left: 2px;
-}
+/* MAIN CONTENT */
+.main { max-width: 980px; margin: 0 auto; padding: 32px 32px 80px; }
 
-/* ═══ MAIN ══════════════════════════════════════ */
-.main { max-width: 960px; margin: 32px auto; padding: 0 24px 80px; }
+/* PAGES */
+.page { display: none; }
+.page.active { display: block; }
 
-/* ═══ PAGE HERO ═════════════════════════════════ */
-.page-hero { margin-bottom: 24px; }
-.page-hero h1 {
-  font-size: 26px; font-weight: 800;
-  color: var(--ink); letter-spacing: -.03em; line-height: 1.15;
-}
-.page-hero h1 span { color: var(--g); }
-.page-hero p {
-  font-size: 14px; color: var(--ink2);
-  margin-top: 7px; max-width: 520px; line-height: 1.6;
-}
-
-/* ═══ CARDS ════════════════════════════════════ */
+/* CARDS */
 .card {
-  background: var(--white);
-  border-radius: var(--r-lg);
-  border: 1.5px solid var(--line);
-  padding: 28px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(146,187,32,0.15);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
-.card-title {
-  font-size: 15px; font-weight: 800;
-  color: var(--ink); letter-spacing: -.02em;
-  margin-bottom: 5px;
-  display: flex; align-items: center; gap: 10px;
-}
-.card-title-icon {
-  width: 32px; height: 32px;
-  background: var(--g-lt);
-  border: 1px solid var(--line2);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; color: var(--g);
-}
-.card-desc { font-size: 13px; color: var(--ink2); line-height: 1.6; }
+.card-inner { padding: 24px 28px; }
 
-/* ═══ HOW-TO BANNER ════════════════════════════ */
-.howto-banner {
-  background: var(--g-lt);
-  border: 1px solid var(--line2);
-  border-radius: var(--r);
-  padding: 18px 22px;
-  margin-top: 20px;
-  display: flex; gap: 16px; align-items: flex-start;
+/* SECTION TITLE */
+.section-title {
+  font-size: 22px; font-weight: 800; letter-spacing: -0.4px;
+  margin-bottom: 6px;
 }
-.howto-icon {
-  width: 36px; height: 36px;
-  background: var(--white);
-  border: 1px solid var(--line2);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; margin-top: 2px; color: var(--g);
+.section-sub {
+  font-size: 14px; color: rgba(255,255,255,0.5);
+  margin-bottom: 24px; line-height: 1.5;
 }
-.howto-text strong {
-  display: block; font-size: 13px; font-weight: 700;
-  color: var(--ink); margin-bottom: 5px;
-}
-.howto-text .path { font-size: 13px; color: var(--ink2); line-height: 1.6; }
-.howto-text .path code {
-  background: var(--white);
-  color: var(--ink);
-  border: 1px solid var(--line2);
-  padding: 2px 6px; border-radius: 4px;
-  font-size: 12px; font-family: 'SF Mono','Fira Code',monospace;
-}
-.howto-text .note { font-size: 11px; color: var(--ink3); margin-top: 5px; }
 
-/* ═══ DROP ZONE ════════════════════════════════ */
+/* UPLOAD ZONE */
 #zone-main {
-  margin-top: 20px;
-  border: 2px dashed var(--line2);
-  border-radius: var(--r-lg);
-  padding: 56px 28px;
+  border: 2px dashed rgba(146,187,32,0.3);
+  border-radius: 16px;
+  padding: 52px 32px;
   text-align: center;
   cursor: pointer;
-  transition: all .22s ease;
-  background: var(--white);
-  position: relative; overflow: hidden;
+  transition: all 0.2s ease;
+  background: rgba(255,255,255,0.02);
+  position: relative;
 }
 #zone-main:hover, #zone-main.drag-over {
-  border-color: var(--g);
-  background: var(--g-lt);
+  border-color: #92BB20;
+  border-style: solid;
+  background: rgba(146,187,32,0.05);
 }
-.zone-svg-icon {
-  display: block; margin: 0 auto 14px; color: var(--ink3);
-  transition: transform .2s;
+#zone-main input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
 }
-#zone-main:hover .zone-svg-icon { transform: scale(1.08) translateY(-3px); }
-.zone-emoji {
-  font-size: 0; display: none;
+.zone-icon { margin-bottom: 16px; display: flex; justify-content: center; }
+.zone-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+.zone-sub { font-size: 13px; color: rgba(255,255,255,0.4); }
+
+/* STATUS CARDS */
+#status-cards { margin-top: 20px; display: none; }
+.status-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.status-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(146,187,32,0.15);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex; align-items: flex-start; gap: 10px;
+  transition: all 0.3s ease;
 }
-.zone-headline {
-  font-size: 18px; font-weight: 800;
-  color: var(--ink); letter-spacing: -.02em; margin-bottom: 5px;
+.status-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  margin-top: 3px; flex-shrink: 0;
+  transition: all 0.3s ease;
 }
-.zone-sub { font-size: 13px; color: var(--ink3); }
-.zone-types {
-  display: flex; gap: 7px; justify-content: center;
-  flex-wrap: wrap; margin-top: 16px;
+.status-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px; }
+.status-val { font-size: 13px; color: rgba(255,255,255,0.6); }
+
+/* UPLOAD ERROR */
+#upload-error {
+  display: none;
+  background: rgba(192,57,43,0.12);
+  border: 1px solid rgba(192,57,43,0.35);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-top: 14px;
+  align-items: center; gap: 10px;
+  font-size: 13px; color: #f87171;
 }
-.zone-type-pill {
-  background: var(--g-lt);
-  border: 1px solid var(--line2);
-  color: var(--ink2);
-  font-size: 11px; font-weight: 600;
-  padding: 3px 10px; border-radius: 20px;
-  font-family: 'SF Mono','Fira Code',monospace;
+.upload-hint {
+  text-align: center; font-size: 13px; color: rgba(255,255,255,0.4);
+  margin-top: 14px;
 }
 
-/* ═══ STATUS CARDS ══════════════════════════════ */
-#status-cards { margin-top: 20px; }
-.status-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 12px; margin-bottom: 12px;
-}
-.status-card-item {
-  border: 1.5px solid var(--line);
-  border-left: 3px solid var(--line2);
-  border-radius: var(--r); padding: 14px 16px;
-  background: var(--white); transition: all .22s;
-}
-.status-card-item.loaded { border-left-color: var(--g); }
-.status-card-item.warn   { border-left-color: var(--amber); }
-.sc-header { display: flex; align-items: center; gap: 9px; margin-bottom: 7px; }
-.sc-icon { font-size: 18px; line-height: 1; }
-.sc-name { font-size: 13px; font-weight: 700; color: var(--ink); }
-.sc-status { font-size: 12px; color: var(--ink3); line-height: 1.4; }
-.status-card-item.loaded .sc-status { color: var(--g); }
-.terms-card {
-  border: 1.5px solid var(--line);
-  border-left: 3px solid var(--line2);
-  border-radius: var(--r); padding: 13px 16px;
-  background: var(--white);
-  display: flex; align-items: center; gap: 13px; transition: all .22s;
-}
-.terms-card.loaded { border-left-color: var(--g); }
-.terms-card.warn   { border-left-color: var(--amber); }
-
-/* ═══ PRIVACY NOTICE ════════════════════════════ */
-.privacy-notice {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--g-lt); border: 1px solid var(--line2);
-  border-radius: var(--r); padding: 11px 16px;
-  margin-top: 14px; font-size: 13px; color: var(--ink2);
-}
-.privacy-notice .lock-icon {
-  width: 30px; height: 30px;
-  background: var(--white);
-  border: 1px solid var(--line2);
-  border-radius: 7px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; color: var(--g);
-}
-
-/* ═══ BUTTONS ═══════════════════════════════════ */
+/* BUTTONS */
 .btn {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 10px 20px; border-radius: 10px;
-  font-size: 14px; font-weight: 700; cursor: pointer; border: none;
-  transition: all .16s; text-decoration: none; letter-spacing: -.01em;
-  font-family: inherit;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 22px; border-radius: 10px;
+  font-size: 14px; font-weight: 700;
+  border: none; cursor: pointer;
+  transition: all 0.18s ease; text-decoration: none;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.1px;
 }
 .btn-primary {
-  background: var(--g); color: var(--ink);
+  background: #92BB20; color: #0d1a0a;
 }
-.btn-primary:hover:not(:disabled) {
-  background: #8fbd1a; transform: translateY(-1px);
-}
-.btn-primary:disabled {
-  background: var(--line); cursor: not-allowed;
-  color: var(--ink3); border: 1px solid var(--line2);
-}
+.btn-primary:hover { background: #a5d124; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(146,187,32,0.35); }
+.btn-primary:disabled { background: rgba(146,187,32,0.25); color: rgba(255,255,255,0.3); cursor: not-allowed; transform: none; box-shadow: none; }
 .btn-secondary {
-  background: var(--white); color: var(--ink);
-  border: 1.5px solid var(--line2);
+  background: transparent;
+  color: #92BB20;
+  border: 1px solid rgba(146,187,32,0.4);
 }
-.btn-secondary:hover { background: var(--g-lt); border-color: var(--line2); }
-.btn-lg { padding: 13px 26px; font-size: 15px; border-radius: 10px; }
-.btn-actions { display: flex; gap: 12px; margin-top: 22px; flex-wrap: wrap; align-items: center; }
-.btn-hint { font-size: 13px; color: var(--ink3); font-weight: 500; }
-.btn-hint.ready { color: var(--g); font-weight: 700; }
+.btn-secondary:hover { border-color: #92BB20; background: rgba(146,187,32,0.08); }
+.btn-ghost {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.7);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.1); color: white; }
 
-/* ═══ ALERTS ════════════════════════════════════ */
-.alert {
-  padding: 12px 16px; border-radius: var(--r);
-  font-size: 13px; margin-bottom: 12px;
-  display: flex; gap: 10px; line-height: 1.6; align-items: flex-start;
+/* NAV ROW */
+.nav-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 28px; padding-top: 22px;
+  border-top: 1px solid rgba(255,255,255,0.07);
 }
-.alert-info    { background: rgba(29,78,216,.06); color: #1e40af; border-left: 3px solid var(--blue); }
-.alert-success { background: var(--g-lt); color: var(--ink2); border-left: 3px solid var(--g); }
-.alert-warn    { background: rgba(180,83,9,.07); color: var(--amber); border-left: 3px solid var(--amber); }
-.alert-error   { background: rgba(192,57,43,.07); color: var(--red); border-left: 3px solid var(--red); }
 
-/* ═══ TABLES ════════════════════════════════════ */
-.table-wrap { overflow-x: auto; margin-top: 4px; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-thead tr { border-bottom: 1.5px solid var(--line); }
-th {
-  padding: 10px 13px; text-align: left;
-  font-weight: 700; font-size: 11px;
-  color: var(--ink3);
-  letter-spacing: .05em; text-transform: uppercase;
-  background: var(--bg);
-}
-td {
-  padding: 10px 13px;
-  border-bottom: 1px solid var(--line);
-  color: var(--ink2); vertical-align: top;
-}
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: var(--g-lt); }
-.mono { font-family: 'SF Mono','Fira Code',monospace; }
-
-/* ═══ TAGS ══════════════════════════════════════ */
-.tag {
-  display: inline-block; padding: 2px 8px;
-  border-radius: 5px; font-size: 11px; font-weight: 700; letter-spacing: .02em;
-}
-.tag-green  { background: var(--g-lt); color: var(--ink2); border: 1px solid var(--line2); }
-.tag-blue   { background: rgba(29,78,216,.08); color: var(--blue); }
-.tag-orange { background: rgba(180,83,9,.08); color: var(--amber); }
-.tag-red    { background: rgba(192,57,43,.08); color: var(--red); }
-.tag-gray   { background: var(--bg); color: var(--ink3); border: 1px solid var(--line); }
-
-/* ═══ STATS GRID ════════════════════════════════ */
-.stats-grid {
-  display: grid; grid-template-columns: repeat(5, 1fr);
-  gap: 12px; margin-top: 4px;
+/* STATS ROW */
+.stats-row {
+  display: grid; grid-template-columns: repeat(5,1fr); gap: 12px;
+  margin-bottom: 28px;
 }
 .stat-card {
-  background: var(--bg); border: 1.5px solid var(--line);
-  border-radius: var(--r); padding: 18px 16px;
-  transition: all .18s;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(146,187,32,0.15);
+  border-radius: 12px;
+  padding: 16px 14px;
+  text-align: center;
 }
-.stat-card:hover { border-color: var(--g); background: var(--g-lt); }
-.stat-num {
-  font-size: 36px; font-weight: 900;
-  color: var(--g); letter-spacing: -.04em; line-height: 1;
-}
-.stat-label {
-  font-size: 10px; font-weight: 700; color: var(--ink3);
-  margin-top: 5px; letter-spacing: .06em; text-transform: uppercase;
-}
+.stat-num { font-size: 32px; font-weight: 900; color: #92BB20; line-height: 1; margin-bottom: 4px; }
+.stat-lbl { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4); letter-spacing: 0.04em; text-transform: uppercase; }
 
-/* ═══ TABS ══════════════════════════════════════ */
-.tabs {
-  display: flex; gap: 2px; margin-bottom: 18px;
-  border-bottom: 1px solid var(--line);
-  overflow-x: auto;
+/* TABS */
+.tabs-bar {
+  display: flex; gap: 4px; margin-bottom: 16px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px; padding: 4px;
+  border: 1px solid rgba(255,255,255,0.08);
+  width: fit-content;
 }
 .tab {
-  padding: 9px 16px; font-size: 13px; font-weight: 600;
-  cursor: pointer; border-bottom: 2px solid transparent;
-  margin-bottom: -1px; color: var(--ink3);
-  white-space: nowrap; transition: all .14s;
-  font-family: inherit;
-  background: none; border-top: none; border-left: none; border-right: none;
+  padding: 7px 16px; border-radius: 7px; cursor: pointer;
+  font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.45);
+  transition: all 0.15s; border: none; background: transparent; font-family: 'Inter', sans-serif;
 }
-.tab:hover { color: var(--ink2); }
-.tab.active { color: var(--g); border-bottom-color: var(--g); }
+.tab:hover { color: rgba(255,255,255,0.75); }
+.tab.active { background: #92BB20; color: #0d1a0a; }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
-/* ═══ CATEGORY TREE ═════════════════════════════ */
-.cat-course-row {
-  font-weight: 800; font-size: 14px; color: var(--ink);
-  padding: 12px 0 9px; border-bottom: 1px solid var(--line);
-  display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
-}
-.cat-section-row {
-  padding: 7px 0 7px 22px; color: var(--ink2);
-  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
-  border-bottom: 1px solid var(--line);
-}
-.cat-section-row::before {
-  content: '└─'; color: var(--ink3);
-  font-family: monospace; margin-right: 4px; font-size: 12px;
-}
-.cat-section-row:last-child { border-bottom: none; }
+/* TABLE */
+.tbl-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid rgba(255,255,255,0.07); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); }
+tbody td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: rgba(255,255,255,0.02); }
 
-/* ═══ VALIDATION ════════════════════════════════ */
-.val-summary-bar {
-  display: flex; gap: 8px; flex-wrap: wrap;
-  padding: 12px 16px; background: var(--bg);
-  border-radius: var(--r); font-size: 13px;
-  margin-bottom: 16px; border: 1.5px solid var(--line);
+/* VALIDATION */
+#val-summary-bar {
+  display: flex; gap: 20px; flex-wrap: wrap;
+  font-size: 13px; color: rgba(255,255,255,0.5);
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
 }
-.val-summary-bar span {
-  padding: 3px 9px; background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: 5px; font-weight: 500; color: var(--ink2);
-}
-.val-list { list-style: none; }
-.val-item {
-  display: flex; gap: 11px; align-items: flex-start;
-  padding: 11px 4px; border-bottom: 1px solid var(--line); font-size: 13px;
-}
-.val-item:last-child { border-bottom: none; }
-.val-icon { font-size: 16px; flex-shrink: 0; }
-.val-msg { flex: 1; line-height: 1.5; color: var(--ink2); }
-.val-detail {
-  color: var(--ink3); font-size: 11px; margin-top: 5px;
-  font-family: 'SF Mono','Fira Code',monospace; word-break: break-all;
-  background: var(--bg); padding: 5px 9px;
-  border-radius: 5px; border: 1px solid var(--line);
-}
+#val-summary-bar span { display: flex; align-items: center; gap: 6px; }
+#val-list { list-style: none; }
+#val-block-msg { font-size: 13px; color: #f87171; margin-top: 14px; font-weight: 700; }
 
-/* ═══ EXPORT STEP ═══════════════════════════════ */
-.export-steps {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 12px; margin: 20px 0;
-}
-.export-step-item {
-  background: var(--bg); border: 1.5px solid var(--line);
-  border-radius: var(--r); padding: 16px 14px; text-align: center;
-}
-.export-step-num {
-  width: 30px; height: 30px;
-  background: var(--g); color: var(--ink);
-  border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 900; margin: 0 auto 9px;
-}
-.export-step-text {
-  font-size: 12px; color: var(--ink2); line-height: 1.5; font-weight: 500;
-}
+/* MAPPING TABLE */
+#page-1\.5 table td, #page-1\.5 table th { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.07); }
 
-/* ═══ MAPPING STEP ══════════════════════════════ */
-.mapping-warn {
-  background: rgba(180,83,9,.05);
-  border: 1px solid rgba(180,83,9,.2);
-  border-radius: var(--r); padding: 14px 18px;
-  margin: 18px 0; display: flex; gap: 12px; align-items: flex-start;
-}
-.mapping-warn-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; color: var(--amber); }
-.mapping-warn-text strong { display: block; font-size: 13px; color: var(--amber); margin-bottom: 4px; }
-.mapping-warn-text p { font-size: 13px; color: var(--ink2); line-height: 1.5; }
-.mapping-warn-text code {
-  background: rgba(180,83,9,.08); color: var(--amber);
-  padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 12px;
-}
+/* EXPORT */
+.export-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
 
-/* ═══ PAGE / RESPONSIVE ═════════════════════════ */
-.page { display: none; }
-.page.active { display: block; }
-.section-divider { height: 1px; background: var(--line); margin: 20px 0; }
+/* CATEGORY TREE */
+#cat-tree-wrap { font-size: 13px; }
 
-@media (max-width: 768px) {
-  .header { padding: 0 18px; }
-  .steps-wrap { padding: 0 18px; }
-  .main { padding: 0 14px 80px; margin-top: 20px; }
-  .card { padding: 18px 20px; }
-  .stats-grid { grid-template-columns: repeat(3, 1fr); }
-  .export-steps { grid-template-columns: repeat(2, 1fr); }
-  .status-grid { grid-template-columns: 1fr; }
-  .page-hero h1 { font-size: 22px; }
-  .header-badge { display: none; }
-}
-@media (max-width: 540px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .export-steps { grid-template-columns: 1fr 1fr; }
-}
+/* DIVIDER */
+.divider { height: 1px; background: rgba(255,255,255,0.07); margin: 24px 0; }
+
+/* MAPPING */
+#page-1_5 { display: none; }
+#page-1_5.active { display: block; }
 </style>
 </head>
 <body>
 
-<!-- ══ HEADER ══════════════════════════════════════════ -->
-<div class="header">
-  <div class="header-brand">
-    <div class="header-logo">
-      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-    </div>
-    <div>
-      <div class="header-title">webGefährte &mdash; Kurs-Migration</div>
-      <div class="header-sub">MemberPress Courses → WordPress WXR</div>
-    </div>
+<!-- HEADER -->
+<header class="header">
+  <div class="header-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <rect width="28" height="28" rx="7" fill="#92BB20"/>
+      <path d="M7 14l5 5 9-9" stroke="#0d1a0a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    web<span>Gefährte</span>
   </div>
-  <div class="header-badge">Lokal &amp; sicher</div>
-</div>
+  <div class="header-badge">Kurs-Migration Tool</div>
+</header>
 
-<!-- ══ STEPS ════════════════════════════════════════════ -->
+<!-- STEP BAR -->
 <div class="steps-wrap">
-  <div class="steps" id="steps">
+  <div id="steps">
     <div class="step active" data-step="1" onclick="goToStep(1)">
       <div class="step-num">1</div>
-      Dateien hochladen
+      <span>Dateien</span>
     </div>
-    <div class="step-sep">›</div>
-    <div class="step" data-step="1.5" id="step-mapping-nav" style="display:none" onclick="goToStep(1.5)">
-      <div class="step-num">!</div>
-      Zuordnung
-      <span class="step-label-alert">Manuell</span>
+    <div class="step-sep"></div>
+    <div class="step" id="step-mapping-nav" data-step="1.5" onclick="goToStep(1.5)" style="display:none">
+      <div class="step-num">
+        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </div>
+      <span>Zuordnung</span>
     </div>
-    <div class="step-sep" id="step-sep-mapping" style="display:none">›</div>
+    <div class="step-sep" id="step-sep-mapping" style="display:none"></div>
     <div class="step" data-step="2" onclick="goToStep(2)">
       <div class="step-num">2</div>
-      Vorschau
+      <span>Vorschau</span>
     </div>
-    <div class="step-sep">›</div>
+    <div class="step-sep"></div>
     <div class="step" data-step="3" onclick="goToStep(3)">
       <div class="step-num">3</div>
-      Validierung
+      <span>Validierung</span>
     </div>
-    <div class="step-sep">›</div>
+    <div class="step-sep"></div>
     <div class="step" data-step="4" onclick="goToStep(4)">
       <div class="step-num">4</div>
-      Export
+      <span>Export</span>
     </div>
   </div>
 </div>
 
-<div class="main">
+<!-- MAIN -->
+<main class="main">
 
-<!-- ══════════ STEP 1: UPLOAD ══════════ -->
-<div class="page active" id="page-1">
+  <!-- PAGE 1: UPLOAD -->
+  <div class="page active" id="page-1">
+    <div class="section-title">WordPress XML-Dateien hochladen</div>
+    <div class="section-sub">Lade alle drei WXR-Exporte (Lektionen, Kurse/Sektionen, Angebote) in einem Schritt hoch. Das Tool erkennt den Typ automatisch.</div>
 
-  <div class="page-hero">
-    <h1>Kursdateien <span>hochladen</span></h1>
-    <p>Exportiere deine Kursdaten aus WordPress und ziehe die XML-Datei einfach hier rein – das Tool erkennt alles automatisch.</p>
-  </div>
-
-  <div class="card">
-    <div class="card-title">
-      <div class="card-title-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-      </div>
-      Export aus WordPress vorbereiten
-    </div>
-
-    <div class="howto-banner">
-      <div class="howto-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-      </div>
-      <div class="howto-text">
-        <strong>So exportierst du aus WordPress</strong>
-        <div class="path">
-          WP Admin → <code>Werkzeuge</code> → <code>Exportieren</code> → <code>Alle Inhalte</code> → <code>Exportdatei herunterladen</code>
-        </div>
-        <div class="note">Eine einzelne XML-Datei genügt – das Tool erkennt Lektionen, Kurse und Angebote automatisch.</div>
-      </div>
-    </div>
-
-    <!-- Drop Zone -->
-    <div id="zone-main"
-         onclick="document.getElementById('file-multi').click()"
-         ondragover="onMainDragOver(event)"
-         ondragleave="onMainDragLeave()"
-         ondrop="onMainDrop(event)">
-      <input type="file" id="file-multi" accept=".xml" multiple style="display:none" onchange="handleMultiFiles(this.files)">
-      <!-- SVG icon managed by JS via id="zone-svg-wrap" -->
-      <div id="zone-svg-wrap" class="zone-svg-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-      </div>
-      <span class="zone-emoji" id="main-icon"></span>
-      <div class="zone-headline">XML-Datei hier reinziehen</div>
-      <div class="zone-sub">oder klicken zum Auswählen &mdash; mehrere Dateien erlaubt</div>
-      <div class="zone-types">
-        <span class="zone-type-pill">mpcs-lesson</span>
-        <span class="zone-type-pill">mpcs-course</span>
-        <span class="zone-type-pill">memberpressproduct</span>
-        <span class="zone-type-pill">sfwd-*</span>
-        <span class="zone-type-pill">ld-*</span>
-      </div>
-    </div>
-
-    <!-- Detection Status Cards -->
-    <div id="status-cards" style="display:none;margin-top:24px">
-      <div style="font-size:12px;font-weight:700;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px">Erkannte Inhalte</div>
-      <div class="status-grid">
-
-        <div class="status-card-item" id="card-lessons">
-          <div class="sc-header">
-            <span class="sc-icon" id="icon-lessons">⏳</span>
-            <span class="sc-name">Lektionen</span>
+    <div class="card">
+      <div class="card-inner">
+        <div id="zone-main"
+          ondragover="onMainDragOver(event)"
+          ondragleave="onMainDragLeave()"
+          ondrop="onMainDrop(event)">
+          <input type="file" id="file-multi" accept=".xml" multiple
+            onchange="handleMultiFiles(this.files)">
+          <div class="zone-icon" id="zone-icon">
+            <svg width="40" height="40" fill="none" stroke="rgba(146,187,32,0.6)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
           </div>
-          <div class="sc-status" id="status-lessons">Nicht gefunden</div>
+          <div class="zone-title">XML-Dateien hierher ziehen oder klicken</div>
+          <div class="zone-sub">Alle drei Dateien auf einmal auswählen · Automatische Typ-Erkennung</div>
         </div>
 
-        <div class="status-card-item" id="card-kurse">
-          <div class="sc-header">
-            <span class="sc-icon" id="icon-kurse">⏳</span>
-            <span class="sc-name">Kurse &amp; Sektionen</span>
+        <div id="upload-error">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          <span id="upload-error-msg"></span>
+        </div>
+
+        <p class="upload-hint" id="upload-hint">Bitte XML-Datei hochladen</p>
+
+        <!-- STATUS CARDS -->
+        <div id="status-cards">
+          <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px">Erkannte Inhalte</div>
+          <div class="status-grid">
+            <div class="status-card" id="card-lessons">
+              <div class="status-dot" id="dot-lessons"></div>
+              <div>
+                <div class="status-label">Lektionen</div>
+                <div class="status-val" id="status-lessons">Noch nicht erkannt</div>
+              </div>
+            </div>
+            <div class="status-card" id="card-kurse">
+              <div class="status-dot" id="dot-kurse"></div>
+              <div>
+                <div class="status-label">Kurse &amp; Sektionen</div>
+                <div class="status-val" id="status-kurse">Noch nicht erkannt</div>
+              </div>
+            </div>
+            <div class="status-card" id="card-angebote">
+              <div class="status-dot" id="dot-angebote"></div>
+              <div>
+                <div class="status-label">Angebote</div>
+                <div class="status-val" id="status-angebote">Noch nicht erkannt</div>
+              </div>
+            </div>
+            <div class="status-card" id="card-terms">
+              <div class="status-dot" id="dot-terms"></div>
+              <div>
+                <div class="status-label">Term-Definitionen</div>
+                <div class="status-val" id="status-terms">Noch nicht erkannt</div>
+              </div>
+            </div>
           </div>
-          <div class="sc-status" id="status-kurse">Nicht gefunden</div>
-        </div>
-
-        <div class="status-card-item" id="card-angebote">
-          <div class="sc-header">
-            <span class="sc-icon" id="icon-angebote">⏳</span>
-            <span class="sc-name">Angebote</span>
-          </div>
-          <div class="sc-status" id="status-angebote">Nicht gefunden</div>
-        </div>
-
-      </div>
-
-      <div class="terms-card" id="card-terms">
-        <span style="font-size:22px" id="icon-terms">⏳</span>
-        <div>
-          <div style="font-size:13px;font-weight:700;color:var(--ink)">Sektion-Zuordnung (Term-Definitionen)</div>
-          <div style="font-size:12px;color:var(--ink3);margin-top:3px" id="status-terms">Wird geprüft…</div>
         </div>
       </div>
     </div>
 
-    <div class="privacy-notice">
-      <div class="lock-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      </div>
-      <span><strong>Datenschutz garantiert</strong> – alle Verarbeitung läuft lokal in deinem Browser. Es werden keine Daten an Server übermittelt oder gespeichert.</span>
-    </div>
-
-    <div id="upload-error" style="display:none" class="alert alert-error" style="margin-top:16px">
-      <span id="upload-error-msg"></span>
-    </div>
-
-    <div class="btn-actions">
-      <button class="btn btn-primary btn-lg" id="btn-next-1" onclick="goToStep(2)" disabled>
-        Weiter zur Vorschau →
-      </button>
-      <span class="btn-hint" id="upload-hint">Bitte XML-Datei hochladen</span>
-    </div>
-  </div>
-
-</div>
-
-<!-- ══════════ STEP 1.5: MANUAL MAPPING ══════════ -->
-<div class="page" id="page-1.5">
-
-  <div class="page-hero">
-    <h1>Sektionen <span>zuordnen</span></h1>
-    <p>Die Term-Definitionen fehlen im Export. Ordne jede Sektion-ID manuell zu &ndash; oder nutze den automatischen Vorschlag.</p>
-  </div>
-
-  <div class="card">
-    <div class="card-title">
-      <div class="card-title-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-      </div>
-      Manuelle Zuordnung
-    </div>
-
-    <div class="mapping-warn">
-      <div class="mapping-warn-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      </div>
-      <div class="mapping-warn-text">
-        <strong>Tipp für künftige Exporte</strong>
-        <p>Exportiere unter <code>Werkzeuge → Exportieren → Alle Inhalte</code>. Dann enthält die Datei Term-Definitionen und dieser Schritt entfällt komplett.</p>
-      </div>
-    </div>
-
-    <div class="btn-actions" style="margin-top:0;margin-bottom:24px">
-      <button class="btn btn-primary" onclick="autoAssignMapping()">Auto-Zuordnen (Vorschlag)</button>
-      <span class="btn-hint">Zuordnung anhand der Reihenfolge – bitte prüfen</span>
-    </div>
-
-    <div id="mapping-table-wrap"></div>
-  </div>
-
-  <div class="btn-actions">
-    <button class="btn btn-secondary" onclick="goToStep(1)">← Zurück</button>
-    <button class="btn btn-primary btn-lg" onclick="applyManualMapping()">Zuordnung bestätigen →</button>
-  </div>
-</div>
-
-<!-- ══════════ STEP 2: PREVIEW ══════════ -->
-<div class="page" id="page-2">
-
-  <div class="page-hero">
-    <h1>Erkannte <span>Inhalte</span></h1>
-    <p>Überblick der verarbeiteten Kursdaten – prüfe die Zuordnungen vor dem Export.</p>
-  </div>
-
-  <div class="card">
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-num" id="stat-kurse">0</div>
-        <div class="stat-label">Kurse</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="stat-sektionen">0</div>
-        <div class="stat-label">Sektionen</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="stat-lektionen">0</div>
-        <div class="stat-label">Lektionen</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="stat-angebote">0</div>
-        <div class="stat-label">Angebote</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="stat-quizzes">0</div>
-        <div class="stat-label">Quizzes</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="tabs">
-      <button class="tab active" onclick="showTab('tab-cats',this)">Kategorien-Baum</button>
-      <button class="tab" onclick="showTab('tab-lessons-prev',this)">Lektionen</button>
-      <button class="tab" onclick="showTab('tab-angebote-prev',this)">Angebote</button>
-    </div>
-
-    <div class="tab-content active" id="tab-cats">
-      <div id="cat-tree-wrap"></div>
-    </div>
-
-    <div class="tab-content" id="tab-lessons-prev">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Titel</th>
-              <th>Sektion</th>
-              <th>Kurs</th>
-              <th>Order</th>
-              <th>Quiz?</th>
-              <th>Slug</th>
-            </tr>
-          </thead>
-          <tbody id="tbody-lessons-prev"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="tab-content" id="tab-angebote-prev">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Titel</th>
-              <th>→ post_type</th>
-              <th>Slug</th>
-              <th>Meta-Felder</th>
-            </tr>
-          </thead>
-          <tbody id="tbody-angebote-prev"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <div class="btn-actions">
-    <button class="btn btn-secondary" onclick="goToStep(1)">← Zurück</button>
-    <button class="btn btn-primary btn-lg" onclick="goToStep(3)">Weiter zur Validierung →</button>
-  </div>
-</div>
-
-<!-- ══════════ STEP 3: VALIDATION ══════════ -->
-<div class="page" id="page-3">
-
-  <div class="page-hero">
-    <h1>Daten <span>validieren</span></h1>
-    <p>Fehler (❌) blockieren den Export. Warnungen (⚠️) sind erlaubt und beeinflussen den Import nicht.</p>
-  </div>
-
-  <div class="card">
-    <div class="card-title">
-      <div class="card-title-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      Validierungsergebnis
-    </div>
-    <div id="val-summary-bar" class="val-summary-bar" style="margin-top:20px"></div>
-    <ul class="val-list" id="val-list"></ul>
-  </div>
-
-  <div class="btn-actions">
-    <button class="btn btn-secondary" onclick="goToStep(2)">← Zurück</button>
-    <button class="btn btn-primary btn-lg" id="btn-to-export" onclick="goToStep(4)" disabled>
-      WXR exportieren →
-    </button>
-    <span id="val-block-msg" style="font-size:13px;color:var(--red);font-weight:700"></span>
-  </div>
-</div>
-
-<!-- ══════════ STEP 4: EXPORT ══════════ -->
-<div class="page" id="page-4">
-
-  <div class="page-hero">
-    <h1>WXR <span>exportieren</span></h1>
-    <p>Lade die fertige WXR-Datei herunter und importiere sie direkt in WordPress.</p>
-  </div>
-
-  <div class="card">
-    <div class="card-title">
-      <div class="card-title-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-      </div>
-      Import in WordPress – 4 Schritte
-    </div>
-
-    <div class="export-steps">
-      <div class="export-step-item">
-        <div class="export-step-num">1</div>
-        <div class="export-step-text">WXR-Datei herunterladen</div>
-      </div>
-      <div class="export-step-item">
-        <div class="export-step-num">2</div>
-        <div class="export-step-text">WP Admin → Werkzeuge → Importieren → WordPress</div>
-      </div>
-      <div class="export-step-item">
-        <div class="export-step-num">3</div>
-        <div class="export-step-text">„WordPress Importer" Plugin installieren (falls nötig)</div>
-      </div>
-      <div class="export-step-item">
-        <div class="export-step-num">4</div>
-        <div class="export-step-text">wg-migration-export.xml hochladen → Autor zuweisen → Import starten</div>
-      </div>
-    </div>
-
-    <div id="export-summary"></div>
-
-    <div class="btn-actions">
-      <button class="btn btn-primary btn-lg" onclick="downloadWXR()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        wg-migration-export.xml herunterladen
-      </button>
-      <button class="btn btn-secondary" onclick="copyWXR()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        XML kopieren
+    <div class="nav-row">
+      <div style="font-size:13px;color:rgba(255,255,255,0.3)">Schritt 1 von 4</div>
+      <button class="btn btn-primary" id="btn-next-1" onclick="goToStep(2)" disabled>
+        Weiter – Vorschau
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
     </div>
   </div>
 
-  <div class="btn-actions">
-    <button class="btn btn-secondary" onclick="goToStep(3)">← Zurück</button>
-  </div>
-</div>
+  <!-- PAGE 1.5: MANUAL MAPPING -->
+  <div class="page" id="page-1.5">
+    <div class="section-title">Manuelle Sektion-Zuordnung</div>
+    <div class="section-sub">Einige Lektionen haben eine Sektions-ID, die nicht automatisch zugeordnet werden konnte. Bitte hier manuell zuordnen.</div>
 
-</div><!-- /main -->
+    <div class="card">
+      <div class="card-inner">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.7)">Unbekannte Sektions-IDs</div>
+          <button class="btn btn-ghost" onclick="autoAssignMapping()" style="font-size:12px;padding:7px 14px">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            Auto-Zuordnen
+          </button>
+        </div>
+        <div id="mapping-table-wrap">
+          <div style="color:rgba(255,255,255,0.4);padding:20px 0;text-align:center">Lade Daten…</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" onclick="goToStep(1)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Zurück
+      </button>
+      <button class="btn btn-primary" onclick="applyManualMapping()">
+        Zuordnung übernehmen &amp; weiter
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- PAGE 2: PREVIEW -->
+  <div class="page" id="page-2">
+    <div class="section-title">Vorschau der transformierten Daten</div>
+    <div class="section-sub">Überprüfe die erkannten Kurse, Sektionen und Lektionen vor der Validierung.</div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-kurse">—</div>
+        <div class="stat-lbl">Kurse</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-sektionen">—</div>
+        <div class="stat-lbl">Sektionen</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-lektionen">—</div>
+        <div class="stat-lbl">Lektionen</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-angebote">—</div>
+        <div class="stat-lbl">Angebote</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-quizzes">—</div>
+        <div class="stat-lbl">Quizzes</div>
+      </div>
+    </div>
+
+    <!-- CATEGORY TREE -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-inner">
+        <div style="font-size:14px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+          <svg width="16" height="16" fill="none" stroke="#92BB20" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          Kurs-Struktur
+        </div>
+        <div id="cat-tree-wrap">
+          <div style="color:rgba(255,255,255,0.4)">Wird geladen…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS: LEKTIONEN / ANGEBOTE -->
+    <div class="card">
+      <div class="card-inner">
+        <div class="tabs-bar">
+          <button class="tab active" onclick="showTab('tab-lektionen', this)">Lektionen</button>
+          <button class="tab" onclick="showTab('tab-angebote', this)">Angebote</button>
+        </div>
+
+        <div class="tab-content active" id="tab-lektionen">
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Titel</th>
+                  <th>Sektion</th>
+                  <th>Kurs</th>
+                  <th>Order</th>
+                  <th>Quiz</th>
+                  <th>Slug</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-lessons-prev">
+                <tr><td colspan="7" style="text-align:center;padding:28px;color:rgba(255,255,255,0.3)">Noch keine Daten</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-angebote">
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Titel</th>
+                  <th>Post-Type</th>
+                  <th>Slug</th>
+                  <th>Metafelder</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-angebote-prev">
+                <tr><td colspan="5" style="text-align:center;padding:28px;color:rgba(255,255,255,0.3)">Noch keine Daten</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" onclick="goToStep(1)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Zurück
+      </button>
+      <button class="btn btn-primary" onclick="goToStep(3)">
+        Weiter – Validierung
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- PAGE 3: VALIDATION -->
+  <div class="page" id="page-3">
+    <div class="section-title">Daten-Validierung</div>
+    <div class="section-sub">Alle Datenpunkte werden geprüft. Fehler müssen behoben werden, Warnungen können ignoriert werden.</div>
+
+    <div class="card">
+      <div class="card-inner">
+        <div id="val-summary-bar">
+          <span>Noch nicht ausgeführt</span>
+        </div>
+        <ul id="val-list"></ul>
+        <div id="val-block-msg"></div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" onclick="goToStep(2)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Zurück
+      </button>
+      <button class="btn btn-primary" id="btn-to-export" onclick="goToStep(4)" disabled>
+        Weiter – Export
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- PAGE 4: EXPORT -->
+  <div class="page" id="page-4">
+    <div class="section-title">WXR-Export</div>
+    <div class="section-sub">Der WordPress-Export ist bereit. Importiere die Datei in dein Zielsystem über Werkzeuge → Importieren → WordPress.</div>
+
+    <div class="card">
+      <div class="card-inner">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+          <svg width="20" height="20" fill="none" stroke="#92BB20" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span style="font-size:15px;font-weight:700">wg-migration-export.xml</span>
+        </div>
+        <div id="export-summary"></div>
+
+        <div class="divider"></div>
+
+        <div class="export-actions">
+          <button class="btn btn-primary" onclick="downloadWXR()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            XML herunterladen
+          </button>
+          <button class="btn btn-secondary" onclick="copyWXR()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            In Zwischenablage kopieren
+          </button>
+        </div>
+
+        <div style="margin-top:24px;padding:16px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.07)">
+          <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:10px">Import-Anleitung</div>
+          <ol style="font-size:13px;color:rgba(255,255,255,0.6);line-height:1.9;padding-left:20px">
+            <li>WordPress-Adminbereich öffnen</li>
+            <li><strong style="color:white">Werkzeuge → Importieren → WordPress</strong></li>
+            <li>XML-Datei hochladen</li>
+            <li>Autor-Zuordnung prüfen</li>
+            <li>Medien importieren aktivieren (optional)</li>
+            <li>Import starten</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" onclick="goToStep(3)">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Zurück zur Validierung
+      </button>
+      <button class="btn btn-ghost" onclick="goToStep(1); S.files={lessons:null,kurse:null,angebote:null}; S.step=1; document.getElementById('file-multi').value=''; document.getElementById('status-cards').style.display='none'; checkReady();">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+        Neu starten
+      </button>
+    </div>
+  </div>
+
+</main>
 
 <script>
-// ═══════════════════════════════════════════════════
-// SVG ICON CONSTANTS (for dynamic icon swapping)
-// ═══════════════════════════════════════════════════
-const SVG_UPLOAD = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>`;
-const SVG_INBOX  = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>`;
-const SVG_CHECK  = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#7faa17" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
-
-// ═══════════════════════════════════════════════════
 // STATE
-// ═══════════════════════════════════════════════════
 const S = {
   files: { lessons: null, kurse: null, angebote: null },
-  sectionMap:   new Map(),   // sectionSlug → { name, slug, parentCourse, parentSlug }
-  termIdToSlug: new Map(),   // numeric termId (string) → sectionSlug
-  categories:   [],          // [{ term_id, name, slug, parent_slug }]
+  sectionMap:   new Map(),
+  termIdToSlug: new Map(),
+  categories:   [],
   transformedLessons:  [],
   transformedProducts: [],
   validation: { valid: false, errors: [], warnings: [] },
@@ -880,870 +626,327 @@ const S = {
   step: 1
 };
 
-// ═══════════════════════════════════════════════════
-// DOM / XML UTILS
-// ═══════════════════════════════════════════════════
-const cdata   = el  => el ? el.textContent.trim() : '';
-const xmlEsc  = s   => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const esc     = s   => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const domV    = id  => document.getElementById(id)?.value || '';
+const cdata  = el => el ? el.textContent.trim() : '';
+const xmlEsc = s  => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const esc    = s  => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function getMeta(item, key) { for (const m of item.querySelectorAll('postmeta')) { if (cdata(m.querySelector('meta_key')) === key) return cdata(m.querySelector('meta_value')); } return ''; }
+function getAllMeta(item) { const out = {}; for (const m of item.querySelectorAll('postmeta')) { const k = cdata(m.querySelector('meta_key')); if (k) out[k] = cdata(m.querySelector('meta_value')); } return out; }
+function getItems(doc, postType) { return Array.from(doc.querySelectorAll('item')).filter(i => cdata(i.querySelector('post_type')) === postType); }
 
-function getMeta(item, key) {
-  for (const m of item.querySelectorAll('postmeta')) {
-    if (cdata(m.querySelector('meta_key')) === key) return cdata(m.querySelector('meta_value'));
-  }
-  return '';
-}
-
-function getAllMeta(item) {
-  const out = {};
-  for (const m of item.querySelectorAll('postmeta')) {
-    const k = cdata(m.querySelector('meta_key'));
-    if (k) out[k] = cdata(m.querySelector('meta_value'));
-  }
-  return out;
-}
-
-function getItems(doc, postType) {
-  return Array.from(doc.querySelectorAll('item'))
-    .filter(i => cdata(i.querySelector('post_type')) === postType);
-}
-
-// ═══════════════════════════════════════════════════
-// PURE FUNCTION: buildSectionMap
-// Input:  sectionsDoc  (DOMDocument – Sections.xml)
-// Output: { sectionMap, termIdToSlug }
-// ═══════════════════════════════════════════════════
 function buildSectionMap(sectionsDoc) {
-  const sectionMap   = new Map();
-  // Start with already-collected termIdToSlug from upload phase
-  const termIdToSlug = new Map(S.termIdToSlug);
-
-  // 1. Parse wp:term elements from THIS doc too (full export case)
+  const sectionMap = new Map(), termIdToSlug = new Map(S.termIdToSlug);
   sectionsDoc.querySelectorAll('term').forEach(term => {
-    const taxonomy = cdata(term.querySelector('term_taxonomy'));
-    if (taxonomy && taxonomy.toLowerCase().includes('course')) {
-      const termId   = cdata(term.querySelector('term_id'));
-      const termSlug = cdata(term.querySelector('term_slug'));
-      if (termId && termSlug) {
-        termIdToSlug.set(termId,   termSlug);
-        termIdToSlug.set(termSlug, termSlug);
-      }
+    const tax = cdata(term.querySelector('term_taxonomy'));
+    if (tax && tax.toLowerCase().includes('course')) {
+      const tid = cdata(term.querySelector('term_id')), tsl = cdata(term.querySelector('term_slug'));
+      if (tid && tsl) { termIdToSlug.set(tid, tsl); termIdToSlug.set(tsl, tsl); }
     }
   });
-
-  // 2. Parse mpcs-course items → read mpcs-course-categories taxonomy entries
   getItems(sectionsDoc, 'mpcs-course').forEach(item => {
-    const courseName = cdata(item.querySelector('title'));
-    const courseSlug = cdata(item.querySelector('post_name'));
-
-    Array.from(item.querySelectorAll('category'))
-      .filter(cat => cat.getAttribute('domain') === 'mpcs-course-categories')
-      .forEach(cat => {
-        const sectionSlug = (cat.getAttribute('nicename') || '').trim();
-        const sectionName = cat.textContent.trim();
-        if (!sectionSlug) return;
-
-        const entry = { name: sectionName || sectionSlug, slug: sectionSlug, parentCourse: courseName, parentSlug: courseSlug };
-        sectionMap.set(sectionSlug, entry);
-        // fuzzy index: lowercase name
-        if (sectionName) sectionMap.set('__n__' + sectionName.toLowerCase(), entry);
-      });
+    const courseName = cdata(item.querySelector('title')), courseSlug = cdata(item.querySelector('post_name'));
+    Array.from(item.querySelectorAll('category')).filter(cat => cat.getAttribute('domain') === 'mpcs-course-categories').forEach(cat => {
+      const sectionSlug = (cat.getAttribute('nicename') || '').trim(), sectionName = cat.textContent.trim();
+      if (!sectionSlug) return;
+      const entry = { name: sectionName || sectionSlug, slug: sectionSlug, parentCourse: courseName, parentSlug: courseSlug };
+      sectionMap.set(sectionSlug, entry);
+      if (sectionName) sectionMap.set('__n__' + sectionName.toLowerCase(), entry);
+    });
   });
-
   return { sectionMap, termIdToSlug };
 }
 
-// ═══════════════════════════════════════════════════
-// PURE FUNCTION: parseLessons
-// ═══════════════════════════════════════════════════
 function parseLessons(doc) {
   return getItems(doc, 'mpcs-lesson').map(item => ({
-    id:          cdata(item.querySelector('post_id')),
-    title:       cdata(item.querySelector('title')),
-    slug:        cdata(item.querySelector('post_name')),
-    status:      cdata(item.querySelector('status')) || 'publish',
-    content:     cdata(item.querySelector('encoded')),
-    postDate:    cdata(item.querySelector('post_date')) || '2025-01-01 00:00:00',
-    sectionId:   getMeta(item, '_mpcs_lesson_section_id'),
-    lessonOrder: getMeta(item, '_mpcs_lesson_lesson_order') || '0',
+    id: cdata(item.querySelector('post_id')), title: cdata(item.querySelector('title')),
+    slug: cdata(item.querySelector('post_name')), status: cdata(item.querySelector('status')) || 'publish',
+    content: cdata(item.querySelector('encoded')), postDate: cdata(item.querySelector('post_date')) || '2025-01-01 00:00:00',
+    sectionId: getMeta(item, '_mpcs_lesson_section_id'), lessonOrder: getMeta(item, '_mpcs_lesson_lesson_order') || '0',
   }));
 }
-
-// ═══════════════════════════════════════════════════
-// PURE FUNCTION: parseProducts
-// ═══════════════════════════════════════════════════
 function parseProducts(doc) {
   return getItems(doc, 'memberpressproduct').map(item => ({
-    id:       cdata(item.querySelector('post_id')),
-    title:    cdata(item.querySelector('title')),
-    slug:     cdata(item.querySelector('post_name')),
-    status:   cdata(item.querySelector('status')) || 'publish',
-    content:  cdata(item.querySelector('encoded')),
-    postDate: cdata(item.querySelector('post_date')) || '2025-01-01 00:00:00',
-    allMeta:  getAllMeta(item),
+    id: cdata(item.querySelector('post_id')), title: cdata(item.querySelector('title')),
+    slug: cdata(item.querySelector('post_name')), status: cdata(item.querySelector('status')) || 'publish',
+    content: cdata(item.querySelector('encoded')), postDate: cdata(item.querySelector('post_date')) || '2025-01-01 00:00:00',
+    allMeta: getAllMeta(item),
   }));
 }
 
-// ═══════════════════════════════════════════════════
-// PURE FUNCTION: mergeData
-// Joins every lesson with its resolved section entry
-// ═══════════════════════════════════════════════════
 function mergeData(lessons, sectionMap, termIdToSlug) {
   return lessons.map(lesson => {
     const sid = (lesson.sectionId || '').trim();
     let resolved = null;
-
     if (sid) {
-      // 1. Direct slug lookup
       resolved = sectionMap.get(sid);
-      // 2. Numeric termId → slug → entry
-      if (!resolved && termIdToSlug.has(sid)) {
-        resolved = sectionMap.get(termIdToSlug.get(sid));
-      }
-      // 3. Fuzzy: lowercase name
+      if (!resolved && termIdToSlug.has(sid)) resolved = sectionMap.get(termIdToSlug.get(sid));
       if (!resolved) resolved = sectionMap.get('__n__' + sid.toLowerCase());
-      // 4. Fuzzy: partial slug match
-      if (!resolved) {
-        for (const [key, val] of sectionMap) {
-          if (key.startsWith('__n__')) continue;
-          if (key.includes(sid) || sid.includes(key)) { resolved = val; break; }
-        }
-      }
+      if (!resolved) { for (const [key, val] of sectionMap) { if (key.startsWith('__n__')) continue; if (key.includes(sid) || sid.includes(key)) { resolved = val; break; } } }
     }
-
-    return {
-      ...lesson,
-      _resolvedSection: resolved,
-      sectionName: resolved?.name      || null,
-      sectionSlug: resolved?.slug      || null,
-      courseName:  resolved?.parentCourse || null,
-      courseSlug:  resolved?.parentSlug   || null,
-    };
+    return { ...lesson, _resolvedSection: resolved, sectionName: resolved?.name||null, sectionSlug: resolved?.slug||null, courseName: resolved?.parentCourse||null, courseSlug: resolved?.parentSlug||null };
   });
 }
 
-// ═══════════════════════════════════════════════════
-// PURE FUNCTION: extractChainedQuiz
-// ═══════════════════════════════════════════════════
 function extractChainedQuiz(content) {
-  const regex   = /\[chained-quiz\s+\d+\]/g;
-  const matches = (content || '').match(regex);
-  return {
-    cleanContent:  (content || '').replace(regex, '').trim(),
-    quizShortcode: matches ? matches[0] : null,
-  };
+  const regex = /\[chained-quiz\s+\d+\]/g, matches = (content||'').match(regex);
+  return { cleanContent: (content||'').replace(regex,'').trim(), quizShortcode: matches ? matches[0] : null };
 }
 
-// ═══════════════════════════════════════════════════
-// PURE FUNCTION: generateSlug  (unique, URL-safe)
-// ═══════════════════════════════════════════════════
 function generateSlug(title, usedSlugs) {
-  let base = (title || 'post')
-    .toLowerCase()
-    .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .substring(0, 80) || 'post';
-
+  let base = (title||'post').toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+    .replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-+|-+$/g,'').substring(0,80)||'post';
   let slug = base, n = 2;
   while (usedSlugs.has(slug)) { slug = base + '-' + n++; }
-  usedSlugs.add(slug);
-  return slug;
+  usedSlugs.add(slug); return slug;
 }
 
-// ═══════════════════════════════════════════════════
-// PURE FUNCTION: buildCategoryList
-// ═══════════════════════════════════════════════════
 function buildCategoryList(mergedLessons) {
-  const courseMap   = new Map(); // courseSlug → { name, slug }
-  const sectionMap2 = new Map(); // sectionSlug → { name, slug, parentSlug }
-
+  const courseMap = new Map(), sectionMap2 = new Map();
   mergedLessons.forEach(l => {
-    if (l.courseName  && l.courseSlug)  courseMap.set(l.courseSlug,   { name: l.courseName,  slug: l.courseSlug });
+    if (l.courseName && l.courseSlug) courseMap.set(l.courseSlug, { name: l.courseName, slug: l.courseSlug });
     if (l.sectionName && l.sectionSlug) sectionMap2.set(l.sectionSlug, { name: l.sectionName, slug: l.sectionSlug, parentSlug: l.courseSlug });
   });
-
-  const cats = [];
-  let id = 1000;
-  courseMap.forEach(c  => cats.push({ term_id: id++, name: c.name,  slug: c.slug,  parent_slug: '' }));
-  sectionMap2.forEach(s => cats.push({ term_id: id++, name: s.name,  slug: s.slug,  parent_slug: s.parentSlug || '' }));
+  const cats = []; let id = 1000;
+  courseMap.forEach(c => cats.push({ term_id: id++, name: c.name, slug: c.slug, parent_slug: '' }));
+  sectionMap2.forEach(s => cats.push({ term_id: id++, name: s.name, slug: s.slug, parent_slug: s.parentSlug||'' }));
   return cats;
 }
 
-// ═══════════════════════════════════════════════════
-// PURE FUNCTION: transformLessons
-// ═══════════════════════════════════════════════════
 function transformLessons(mergedLessons) {
-  const usedSlugs = new Set();
-  let postId = 2001;
-
+  const usedSlugs = new Set(); let postId = 2001;
   return mergedLessons.map((l, idx) => {
     const { cleanContent, quizShortcode } = extractChainedQuiz(l.content);
-
-    // Slug: preserve existing if unique, else generate
     let slug;
-    if (l.slug && l.slug.trim() && !usedSlugs.has(l.slug.trim())) {
-      slug = l.slug.trim();
-      usedSlugs.add(slug);
-    } else {
-      slug = generateSlug(l.title, usedSlugs);
-    }
-
+    if (l.slug && l.slug.trim() && !usedSlugs.has(l.slug.trim())) { slug = l.slug.trim(); usedSlugs.add(slug); }
+    else { slug = generateSlug(l.title, usedSlugs); }
     const categories = [];
     if (l.sectionName && l.sectionSlug) categories.push({ name: l.sectionName, slug: l.sectionSlug });
-    if (l.courseName  && l.courseSlug)  categories.push({ name: l.courseName,  slug: l.courseSlug  });
-
-    const postmeta = {};
-    if (quizShortcode) postmeta['wg_besenwagen_code'] = quizShortcode;
-
-    return {
-      _postId:     postId++,
-      _resolved:   !!l._resolvedSection,
-      _hasQuiz:    !!quizShortcode,
-      title:       l.title,
-      slug,
-      content:     cleanContent,
-      post_type:   'post',
-      post_status: l.status === 'publish' ? 'publish' : 'draft',
-      post_date:   l.postDate,
-      menu_order:  parseInt(l.lessonOrder) || idx,
-      categories,
-      postmeta,
-    };
+    if (l.courseName && l.courseSlug) categories.push({ name: l.courseName, slug: l.courseSlug });
+    const postmeta = {}; if (quizShortcode) postmeta['wg_besenwagen_code'] = quizShortcode;
+    return { _postId: postId++, _resolved: !!l._resolvedSection, _hasQuiz: !!quizShortcode, title: l.title, slug, content: cleanContent, post_type: 'post', post_status: l.status==='publish'?'publish':'draft', post_date: l.postDate, menu_order: parseInt(l.lessonOrder)||idx, categories, postmeta };
   });
 }
 
-// ═══════════════════════════════════════════════════
-// PURE FUNCTION: transformProducts
-// ═══════════════════════════════════════════════════
 function transformProducts(products) {
-  const usedSlugs = new Set();
-  let postId = 3001;
-
+  const usedSlugs = new Set(); let postId = 3001;
   return products.map(p => {
     let slug;
-    if (p.slug && p.slug.trim() && !usedSlugs.has(p.slug.trim())) {
-      slug = p.slug.trim();
-      usedSlugs.add(slug);
-    } else {
-      slug = generateSlug(p.title, usedSlugs);
-    }
-    return {
-      _postId:     postId++,
-      _resolved:   true,
-      _hasQuiz:    false,
-      title:       p.title,
-      slug,
-      content:     p.content || '',
-      post_type:   'wg_angebot',
-      post_status: p.status === 'publish' ? 'publish' : 'draft',
-      post_date:   p.postDate,
-      menu_order:  0,
-      categories:  [],
-      postmeta:    p.allMeta,
-    };
+    if (p.slug && p.slug.trim() && !usedSlugs.has(p.slug.trim())) { slug = p.slug.trim(); usedSlugs.add(slug); }
+    else { slug = generateSlug(p.title, usedSlugs); }
+    return { _postId: postId++, _resolved: true, _hasQuiz: false, title: p.title, slug, content: p.content||'', post_type: 'wg_angebot', post_status: p.status==='publish'?'publish':'draft', post_date: p.postDate, menu_order: 0, categories: [], postmeta: p.allMeta };
   });
 }
 
-// ═══════════════════════════════════════════════════
-// PURE FUNCTION: validateData
-// ═══════════════════════════════════════════════════
 function validateData(categories, lessons, products) {
   const errors = [], warnings = [];
-
-  // ERROR: lessons without section
   const unresolved = lessons.filter(l => !l._resolved);
-  if (unresolved.length)
-    errors.push({ msg: `${unresolved.length} Lektionen ohne zugeordnete Sektion`, detail: unresolved.map(l => l.title).join(', ') });
-
-  // ERROR: duplicate slugs across all items
-  const slugCount = {};
-  [...lessons, ...products].forEach(i => { slugCount[i.slug] = (slugCount[i.slug]||0)+1; });
+  if (unresolved.length) errors.push({ msg: unresolved.length + ' Lektionen ohne zugeordnete Sektion', detail: unresolved.map(l=>l.title).join(', ') });
+  const slugCount = {}; [...lessons, ...products].forEach(i => { slugCount[i.slug] = (slugCount[i.slug]||0)+1; });
   const dups = Object.entries(slugCount).filter(([,c]) => c > 1);
-  if (dups.length)
-    errors.push({ msg: `${dups.length} doppelte Slugs`, detail: dups.map(([s]) => s).join(', ') });
-
-  // ERROR: empty categories (no lesson uses them)
-  const usedSlugs = new Set(lessons.flatMap(l => l.categories.map(c => c.slug)));
+  if (dups.length) errors.push({ msg: dups.length + ' doppelte Slugs', detail: dups.map(([s])=>s).join(', ') });
+  const usedSlugs = new Set(lessons.flatMap(l => l.categories.map(c=>c.slug)));
   const emptyCats = categories.filter(c => !usedSlugs.has(c.slug));
-  if (emptyCats.length)
-    errors.push({ msg: `${emptyCats.length} leere Kategorien (keine Lektionen zugeordnet)`, detail: emptyCats.map(c => c.name).join(', ') });
-
-  // WARNING: lessons without quiz (normal)
+  if (emptyCats.length) errors.push({ msg: emptyCats.length + ' leere Kategorien', detail: emptyCats.map(c=>c.name).join(', ') });
   const noQuiz = lessons.filter(l => !l._hasQuiz).length;
-  if (noQuiz)
-    warnings.push({ msg: `${noQuiz} Lektionen ohne [chained-quiz] Shortcode (normal, nicht jede Lektion hat einen)`, detail: '' });
-
-  // WARNING: menu_order = 0
+  if (noQuiz) warnings.push({ msg: noQuiz + ' Lektionen ohne [chained-quiz] (normal)', detail: '' });
   const order0 = lessons.filter(l => l.menu_order === 0).length;
-  if (order0)
-    warnings.push({ msg: `${order0} Lektionen mit menu_order = 0`, detail: '' });
-
-  // WARNING: products without content
+  if (order0) warnings.push({ msg: order0 + ' Lektionen mit menu_order = 0', detail: '' });
   const noContent = products.filter(p => !p.content || p.content.trim().length < 5);
-  if (noContent.length)
-    warnings.push({ msg: `${noContent.length} Angebote ohne Inhalt`, detail: noContent.map(p => p.title).join(', ') });
-
+  if (noContent.length) warnings.push({ msg: noContent.length + ' Angebote ohne Inhalt', detail: noContent.map(p=>p.title).join(', ') });
   return { valid: errors.length === 0, errors, warnings };
 }
 
-// ═══════════════════════════════════════════════════
-// PURE FUNCTION: generateWXR
-// ═══════════════════════════════════════════════════
 function generateWXR(categories, lessons, products) {
-  const pubDate  = new Date().toUTCString();
-  const postDate = new Date().toISOString().replace('T',' ').substring(0,19);
-
-  const lines = [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<rss version="2.0"',
-    '  xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/"',
-    '  xmlns:content="http://purl.org/rss/1.0/modules/content/"',
-    '  xmlns:wfw="http://wellformedweb.org/CommentAPI/"',
-    '  xmlns:dc="http://purl.org/dc/elements/1.1/"',
-    '  xmlns:wp="http://wordpress.org/export/1.2/">',
-    '<channel>',
-    '  <title>webGefährte Migration Export</title>',
-    '  <link>https://example.com</link>',
-    '  <description>WXR generated by webGefährte Migration Tool</description>',
-    `  <pubDate>${pubDate}</pubDate>`,
-    '  <wp:wxr_version>1.2</wp:wxr_version>',
-    '  <wp:base_site_url>https://example.com</wp:base_site_url>',
-    '  <wp:base_blog_url>https://example.com</wp:base_blog_url>',
-    '',
-    '  <!-- ══ CATEGORIES ══ -->',
-  ];
-
-  categories.forEach(cat => {
-    lines.push('  <wp:category>');
-    lines.push(`    <wp:term_id>${cat.term_id}</wp:term_id>`);
-    lines.push(`    <wp:category_nicename>${xmlEsc(cat.slug)}</wp:category_nicename>`);
-    lines.push(`    <wp:category_parent>${xmlEsc(cat.parent_slug)}</wp:category_parent>`);
-    lines.push(`    <wp:cat_name><![CDATA[${cat.name}]]></wp:cat_name>`);
-    lines.push('  </wp:category>');
-  });
-
+  const pubDate = new Date().toUTCString(), postDate = new Date().toISOString().replace('T',' ').substring(0,19);
+  const lines = ['<?xml version="1.0" encoding="UTF-8"?>','<rss version="2.0"','  xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/"','  xmlns:content="http://purl.org/rss/1.0/modules/content/"','  xmlns:wfw="http://wellformedweb.org/CommentAPI/"','  xmlns:dc="http://purl.org/dc/elements/1.1/"','  xmlns:wp="http://wordpress.org/export/1.2/">','<channel>','  <title>webGefaehrte Migration Export</title>','  <link>https://example.com</link>','  <description>WXR generated by webGefaehrte Migration Tool</description>','  <pubDate>'+pubDate+'</pubDate>','  <wp:wxr_version>1.2</wp:wxr_version>','  <wp:base_site_url>https://example.com</wp:base_site_url>','  <wp:base_blog_url>https://example.com</wp:base_blog_url>','','  <!-- CATEGORIES -->'];
+  categories.forEach(cat => { lines.push('  <wp:category>','    <wp:term_id>'+cat.term_id+'</wp:term_id>','    <wp:category_nicename>'+xmlEsc(cat.slug)+'</wp:category_nicename>','    <wp:category_parent>'+xmlEsc(cat.parent_slug)+'</wp:category_parent>','    <wp:cat_name><![CDATA['+cat.name+']]></wp:cat_name>','  </wp:category>'); });
   const writeItem = item => {
-    lines.push('  <item>');
-    lines.push(`    <title>${xmlEsc(item.title)}</title>`);
-    lines.push(`    <link>https://example.com/${xmlEsc(item.slug)}/</link>`);
-    lines.push(`    <pubDate>${pubDate}</pubDate>`);
-    lines.push('    <dc:creator><![CDATA[admin]]></dc:creator>');
-    lines.push(`    <content:encoded><![CDATA[${item.content||''}]]></content:encoded>`);
-    lines.push('    <excerpt:encoded><![CDATA[]]></excerpt:encoded>');
-    lines.push(`    <wp:post_id>${item._postId}</wp:post_id>`);
-    lines.push(`    <wp:post_date><![CDATA[${item.post_date||postDate}]]></wp:post_date>`);
-    lines.push(`    <wp:post_date_gmt><![CDATA[${item.post_date||postDate}]]></wp:post_date_gmt>`);
-    lines.push('    <wp:comment_status><![CDATA[closed]]></wp:comment_status>');
-    lines.push('    <wp:ping_status><![CDATA[closed]]></wp:ping_status>');
-    lines.push(`    <wp:post_name><![CDATA[${item.slug}]]></wp:post_name>`);
-    lines.push(`    <wp:status><![CDATA[${item.post_status}]]></wp:status>`);
-    lines.push('    <wp:post_parent>0</wp:post_parent>');
-    lines.push(`    <wp:menu_order>${item.menu_order}</wp:menu_order>`);
-    lines.push(`    <wp:post_type><![CDATA[${item.post_type}]]></wp:post_type>`);
-    lines.push('    <wp:post_password><![CDATA[]]></wp:post_password>');
-    lines.push('    <wp:is_sticky>0</wp:is_sticky>');
-    (item.categories||[]).forEach(cat => {
-      lines.push(`    <category domain="category" nicename="${xmlEsc(cat.slug)}"><![CDATA[${cat.name}]]></category>`);
-    });
-    Object.entries(item.postmeta||{}).forEach(([k,v]) => {
-      lines.push('    <wp:postmeta>');
-      lines.push(`      <wp:meta_key><![CDATA[${k}]]></wp:meta_key>`);
-      lines.push(`      <wp:meta_value><![CDATA[${v}]]></wp:meta_value>`);
-      lines.push('    </wp:postmeta>');
-    });
+    lines.push('  <item>','    <title>'+xmlEsc(item.title)+'</title>','    <link>https://example.com/'+xmlEsc(item.slug)+'/</link>','    <pubDate>'+pubDate+'</pubDate>','    <dc:creator><![CDATA[admin]]></dc:creator>','    <content:encoded><![CDATA['+(item.content||'')+']]></content:encoded>','    <excerpt:encoded><![CDATA[]]></excerpt:encoded>','    <wp:post_id>'+item._postId+'</wp:post_id>','    <wp:post_date><![CDATA['+(item.post_date||postDate)+']]></wp:post_date>','    <wp:post_date_gmt><![CDATA['+(item.post_date||postDate)+']]></wp:post_date_gmt>','    <wp:comment_status><![CDATA[closed]]></wp:comment_status>','    <wp:ping_status><![CDATA[closed]]></wp:ping_status>','    <wp:post_name><![CDATA['+item.slug+']]></wp:post_name>','    <wp:status><![CDATA['+item.post_status+']]></wp:status>','    <wp:post_parent>0</wp:post_parent>','    <wp:menu_order>'+item.menu_order+'</wp:menu_order>','    <wp:post_type><![CDATA['+item.post_type+']]></wp:post_type>','    <wp:post_password><![CDATA[]]></wp:post_password>','    <wp:is_sticky>0</wp:is_sticky>');
+    (item.categories||[]).forEach(cat => { lines.push('    <category domain="category" nicename="'+xmlEsc(cat.slug)+'"><![CDATA['+cat.name+']]></category>'); });
+    Object.entries(item.postmeta||{}).forEach(([k,v]) => { lines.push('    <wp:postmeta>','      <wp:meta_key><![CDATA['+k+']]></wp:meta_key>','      <wp:meta_value><![CDATA['+v+']]></wp:meta_value>','    </wp:postmeta>'); });
     lines.push('  </item>');
   };
-
-  lines.push('', '  <!-- ══ LEKTIONEN (post) ══ -->');
-  lessons.forEach(writeItem);
-  lines.push('', '  <!-- ══ ANGEBOTE (wg_angebot) ══ -->');
-  products.forEach(writeItem);
-
-  lines.push('</channel>', '</rss>');
-  return lines.join('\n');
+  lines.push('','  <!-- LEKTIONEN -->'); lessons.forEach(writeItem);
+  lines.push('','  <!-- ANGEBOTE -->'); products.forEach(writeItem);
+  lines.push('</channel>','</rss>'); return lines.join('\n');
 }
 
-// ═══════════════════════════════════════════════════
-// PIPELINE  – runs every time the user advances past step 1
-// ═══════════════════════════════════════════════════
 function runPipeline() {
-  // Only rebuild sectionMap if not already done (manual mapping may have built it)
-  if (!S.sectionMap.size) {
-    const { sectionMap, termIdToSlug } = buildSectionMap(S.files.kurse);
-    S.sectionMap   = sectionMap;
-    S.termIdToSlug = new Map([...S.termIdToSlug, ...termIdToSlug]);
-  }
-
-  const rawLessons  = parseLessons(S.files.lessons);
-  const rawProducts = parseProducts(S.files.angebote);
-  const merged      = mergeData(rawLessons, S.sectionMap, S.termIdToSlug);
-
-  S.categories          = buildCategoryList(merged);
-  S.transformedLessons  = transformLessons(merged);
-  S.transformedProducts = transformProducts(rawProducts);
+  if (!S.sectionMap.size) { const { sectionMap, termIdToSlug } = buildSectionMap(S.files.kurse); S.sectionMap = sectionMap; S.termIdToSlug = new Map([...S.termIdToSlug, ...termIdToSlug]); }
+  const rawLessons = parseLessons(S.files.lessons), rawProducts = parseProducts(S.files.angebote), merged = mergeData(rawLessons, S.sectionMap, S.termIdToSlug);
+  S.categories = buildCategoryList(merged); S.transformedLessons = transformLessons(merged); S.transformedProducts = transformProducts(rawProducts);
 }
 
-// ═══════════════════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════════════════
 function needsManualMapping() {
-  // Check after files loaded: are there unresolved numeric section IDs?
   if (!S.files.lessons) return false;
-  const rawLessons = parseLessons(S.files.lessons);
-  const hasMissing = rawLessons.some(l => {
-    const sid = (l.sectionId||'').trim();
-    if (!sid) return false;
-    return !S.termIdToSlug.has(sid) && !S.sectionMap.has(sid);
-  });
-  return hasMissing;
+  return parseLessons(S.files.lessons).some(l => { const sid = (l.sectionId||'').trim(); if (!sid) return false; return !S.termIdToSlug.has(sid) && !S.sectionMap.has(sid); });
 }
 
 function goToStep(n) {
-  if (n >= 1.5 && !['lessons','kurse','angebote'].every(k => S.files[k])) {
-    showUploadError('Bitte zuerst die Dateien hochladen.');
-    return;
-  }
-
-  // After upload: build section map so we can check if mapping needed
-  if (n === 2 || n === 1.5) {
-    const { sectionMap, termIdToSlug } = buildSectionMap(S.files.kurse);
-    S.sectionMap   = sectionMap;
-    S.termIdToSlug = new Map([...S.termIdToSlug, ...termIdToSlug]);
-  }
-
-  // Intercept: go to mapping step if term defs are missing
-  if (n === 2 && needsManualMapping()) {
-    renderMappingStep();
-    n = 1.5;
-    // Show mapping step in nav
-    document.getElementById('step-mapping-nav').style.display = 'flex';
-    document.getElementById('step-sep-mapping').style.display = 'flex';
-  } else if (n === 2) {
-    runPipeline(); renderPreview();
-  }
-
-  if (n === 3) { runValidation(); }
-  if (n === 4) { prepareExport(); }
-
+  if (n >= 1.5 && !['lessons','kurse','angebote'].every(k => S.files[k])) { showUploadError('Bitte zuerst die Dateien hochladen.'); return; }
+  if (n === 2 || n === 1.5) { const { sectionMap, termIdToSlug } = buildSectionMap(S.files.kurse); S.sectionMap = sectionMap; S.termIdToSlug = new Map([...S.termIdToSlug, ...termIdToSlug]); }
+  if (n === 2 && needsManualMapping()) { renderMappingStep(); n = 1.5; document.getElementById('step-mapping-nav').style.display = 'flex'; document.getElementById('step-sep-mapping').style.display = 'flex'; }
+  else if (n === 2) { runPipeline(); renderPreview(); }
+  if (n === 3) runValidation(); if (n === 4) prepareExport();
   S.step = n;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const pageEl = document.getElementById('page-' + n);
-  if (pageEl) pageEl.classList.add('active');
-
-  document.querySelectorAll('.step').forEach(s => {
-    const sn = parseFloat(s.dataset.step);
-    s.classList.toggle('active', sn === n);
-    s.classList.toggle('done',   sn < n);
-  });
+  const pageEl = document.getElementById('page-' + n); if (pageEl) pageEl.classList.add('active');
+  document.querySelectorAll('.step').forEach(s => { const sn = parseFloat(s.dataset.step); s.classList.toggle('active', sn === n); s.classList.toggle('done', sn < n); });
   window.scrollTo(0, 0);
 }
 
-// ═══════════════════════════════════════════════════
-// MANUAL MAPPING STEP
-// ═══════════════════════════════════════════════════
 function renderMappingStep() {
   const rawLessons = parseLessons(S.files.lessons);
-
-  // Collect unique section IDs that are unresolved
-  const unresolvedIds = [...new Set(
-    rawLessons
-      .map(l => (l.sectionId||'').trim())
-      .filter(id => id && !S.termIdToSlug.has(id) && !S.sectionMap.has(id))
-  )].sort((a,b) => parseInt(a)-parseInt(b));
-
-  // Collect known section slugs + names from courses
-  const knownSections = [];
-  S.sectionMap.forEach((val, key) => {
-    if (!key.startsWith('__n__')) {
-      knownSections.push({ slug: val.slug, name: val.name, course: val.parentCourse });
-    }
-  });
-  knownSections.sort((a,b) => a.slug.localeCompare(b.slug));
-
-  if (!unresolvedIds.length) {
-    goToStep(2); return;
-  }
-
-  const optionsHtml = knownSections.map(s =>
-    `<option value="${s.slug}">${s.name} (${s.course})</option>`
-  ).join('');
-
-  const rows = unresolvedIds.map((id, i) => {
-    const lessonCount = rawLessons.filter(l => l.sectionId === id).length;
-    return `<tr>
-      <td style="font-family:monospace;font-weight:700;color:var(--ink)">${id}</td>
-      <td style="font-size:12px;color:var(--ink3)">${lessonCount} Lektion${lessonCount!==1?'en':''}</td>
-      <td>
-        <select id="map-${id}" style="width:100%;padding:8px 10px;border:1.5px solid var(--line2);border-radius:8px;font-size:13px;background:white;color:var(--ink);font-family:inherit">
-          <option value="">— bitte zuordnen —</option>
-          ${optionsHtml}
-        </select>
-      </td>
-    </tr>`;
-  }).join('');
-
-  document.getElementById('mapping-table-wrap').innerHTML = `
-    <table style="width:100%;border-collapse:collapse;font-size:13px">
-      <thead>
-        <tr>
-          <th style="text-align:left;padding:10px 14px;background:var(--bg);border-bottom:1.5px solid var(--line);width:80px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)">Sektion-ID</th>
-          <th style="text-align:left;padding:10px 14px;background:var(--bg);border-bottom:1.5px solid var(--line);width:110px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)">Lektionen</th>
-          <th style="text-align:left;padding:10px 14px;background:var(--bg);border-bottom:1.5px solid var(--line);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)">Zuordnen zu Sektion</th>
-        </tr>
-      </thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <div style="font-size:12px;color:var(--ink3);margin-top:12px;padding:0 4px">
-      ${unresolvedIds.length} IDs · ${rawLessons.filter(l=>unresolvedIds.includes((l.sectionId||'').trim())).length} Lektionen betroffen
-    </div>`;
-
-  // Store for auto-assign
-  S._unresolvedIds    = unresolvedIds;
-  S._knownSections    = knownSections;
+  const unresolvedIds = [...new Set(rawLessons.map(l=>(l.sectionId||'').trim()).filter(id=>id&&!S.termIdToSlug.has(id)&&!S.sectionMap.has(id)))].sort((a,b)=>parseInt(a)-parseInt(b));
+  const knownSections = []; S.sectionMap.forEach((val,key) => { if (!key.startsWith('__n__')) knownSections.push({ slug: val.slug, name: val.name, course: val.parentCourse }); }); knownSections.sort((a,b)=>a.slug.localeCompare(b.slug));
+  if (!unresolvedIds.length) { goToStep(2); return; }
+  const optionsHtml = knownSections.map(s=>'<option value="'+s.slug+'">'+s.name+' ('+s.course+')</option>').join('');
+  const rows = unresolvedIds.map(id => { const n = rawLessons.filter(l=>l.sectionId===id).length; return '<tr><td style="font-family:monospace;font-weight:700;color:#92BB20">'+id+'</td><td style="color:rgba(255,255,255,.5)">'+n+' Lektion'+(n!==1?'en':'')+'</td><td><select id="map-'+id+'" style="width:100%;padding:8px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(146,187,32,.2);border-radius:8px;font-size:13px;color:white;font-family:Inter,sans-serif"><option value="">— bitte zuordnen —</option>'+optionsHtml+'</select></td></tr>'; }).join('');
+  document.getElementById('mapping-table-wrap').innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.08)">ID</th><th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.08)">Lektionen</th><th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.08)">Zuordnen zu</th></tr></thead><tbody>'+rows+'</tbody></table><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:10px">'+unresolvedIds.length+' IDs</div>';
+  S._unresolvedIds = unresolvedIds; S._knownSections = knownSections;
 }
 
 function autoAssignMapping() {
-  // Strategy: sort IDs numerically, sort sections by slug, assign positionally
-  const ids      = [...S._unresolvedIds].sort((a,b) => parseInt(a)-parseInt(b));
-  const sections = [...S._knownSections].sort((a,b) => a.slug.localeCompare(b.slug));
-
-  ids.forEach((id, i) => {
-    const sel = document.getElementById('map-' + id);
-    if (sel && sections[i]) sel.value = sections[i].slug;
-  });
+  const ids = [...S._unresolvedIds].sort((a,b)=>parseInt(a)-parseInt(b)), sections = [...S._knownSections].sort((a,b)=>a.slug.localeCompare(b.slug));
+  ids.forEach((id,i) => { const sel = document.getElementById('map-'+id); if (sel && sections[i]) sel.value = sections[i].slug; });
 }
 
 function applyManualMapping() {
-  const ids = S._unresolvedIds || [];
-  let mapped = 0;
-  ids.forEach(id => {
-    const sel = document.getElementById('map-' + id);
-    const slug = sel ? sel.value : '';
-    if (slug) {
-      S.termIdToSlug.set(id, slug);
-      mapped++;
-    }
-  });
-
-  if (mapped < ids.length) {
-    const remaining = ids.length - mapped;
-    if (!confirm(`${remaining} ID(s) noch nicht zugeordnet. Trotzdem fortfahren? (Diese Lektionen werden als Fehler angezeigt)`)) return;
-  }
-
-  // Rebuild section map with new termIdToSlug
-  const { sectionMap } = buildSectionMap(S.files.kurse);
-  S.sectionMap = sectionMap;
-  runPipeline();
-  renderPreview();
-
-  // Jump to step 2 directly
-  S.step = 2;
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-2').classList.add('active');
-  document.querySelectorAll('.step').forEach(s => {
-    const sn = parseFloat(s.dataset.step);
-    s.classList.toggle('active', sn === 2);
-    s.classList.toggle('done',   sn < 2);
-  });
-  window.scrollTo(0, 0);
+  const ids = S._unresolvedIds || []; let mapped = 0;
+  ids.forEach(id => { const slug = document.getElementById('map-'+id)?.value; if (slug) { S.termIdToSlug.set(id, slug); mapped++; } });
+  if (mapped < ids.length && !confirm((ids.length - mapped)+' ID(s) noch nicht zugeordnet. Trotzdem fortfahren?')) return;
+  const { sectionMap } = buildSectionMap(S.files.kurse); S.sectionMap = sectionMap;
+  runPipeline(); renderPreview(); S.step = 2;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById('page-2').classList.add('active');
+  document.querySelectorAll('.step').forEach(s=>{ const sn=parseFloat(s.dataset.step); s.classList.toggle('active',sn===2); s.classList.toggle('done',sn<2); }); window.scrollTo(0,0);
 }
 
-// ═══════════════════════════════════════════════════
-// UPLOAD – Single-File Auto-Erkennung + Term-Extraktion
-// ═══════════════════════════════════════════════════
-
-// post_type → interner Slot
 const LESSON_TYPES  = new Set(['mpcs-lesson','sfwd-lessons','lesson','ld-lesson']);
 const COURSE_TYPES  = new Set(['mpcs-course','sfwd-courses','course','ld-course']);
 const PRODUCT_TYPES = new Set(['memberpressproduct','product','llms_membership']);
 
-function setZoneIcon(svgString) {
-  document.getElementById('zone-svg-wrap').innerHTML = svgString;
-}
-
-function onMainDragOver(e) {
-  e.preventDefault();
-  const z = document.getElementById('zone-main');
-  z.classList.add('drag-over');
-  setZoneIcon(SVG_INBOX);
-}
-function onMainDragLeave() {
-  const z = document.getElementById('zone-main');
-  z.classList.remove('drag-over');
-  const allReady = ['lessons','kurse','angebote'].every(k => S.files[k]);
-  setZoneIcon(allReady ? SVG_CHECK : SVG_UPLOAD);
-}
-function onMainDrop(e) {
-  e.preventDefault();
-  onMainDragLeave();
-  handleMultiFiles(e.dataTransfer.files);
-}
-
-function handleMultiFiles(fileList) {
-  hideUploadError();
-  Array.from(fileList).forEach(file => {
-    if (!file.name.toLowerCase().endsWith('.xml')) {
-      showUploadError(`"${file.name}" ist keine XML-Datei.`);
-      return;
-    }
-    readAndProcess(file);
-  });
-}
+function onMainDragOver(e) { e.preventDefault(); document.getElementById('zone-main').classList.add('drag-over'); }
+function onMainDragLeave() { document.getElementById('zone-main').classList.remove('drag-over'); }
+function onMainDrop(e) { e.preventDefault(); document.getElementById('zone-main').classList.remove('drag-over'); handleMultiFiles(e.dataTransfer.files); }
+function handleMultiFiles(fileList) { hideUploadError(); Array.from(fileList).forEach(file => { if (!file.name.toLowerCase().endsWith('.xml')) { showUploadError('"'+file.name+'" ist keine XML-Datei.'); return; } readAndProcess(file); }); }
 
 function readAndProcess(file) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
       const doc = new DOMParser().parseFromString(e.target.result, 'application/xml');
-      if (doc.querySelector('parsererror'))
-        throw new Error(`"${file.name}" enthält ungültiges XML – bitte prüfen.`);
-
-      // Count items per post_type
-      const typeCounts = {};
-      doc.querySelectorAll('post_type').forEach(el => {
-        const t = el.textContent.trim();
-        if (t) typeCounts[t] = (typeCounts[t]||0) + 1;
-      });
-
-      // Assign to slots
-      let assigned = 0;
+      if (doc.querySelector('parsererror')) throw new Error('"'+file.name+'" enthaelt ungueltiges XML.');
+      const typeCounts = {}; doc.querySelectorAll('post_type').forEach(el => { const t = el.textContent.trim(); if (t) typeCounts[t] = (typeCounts[t]||0)+1; });
       for (const [pt, count] of Object.entries(typeCounts)) {
-        if (LESSON_TYPES.has(pt)  && !S.files.lessons)  { S.files.lessons  = doc; markSlot('lessons',  pt, count); assigned++; }
-        if (COURSE_TYPES.has(pt)  && !S.files.kurse)    { S.files.kurse    = doc; markSlot('kurse',    pt, count); assigned++; }
-        if (PRODUCT_TYPES.has(pt) && !S.files.angebote) { S.files.angebote = doc; markSlot('angebote', pt, count); assigned++; }
+        if (LESSON_TYPES.has(pt) && !S.files.lessons) { S.files.lessons = doc; markSlot('lessons', pt, count); }
+        if (COURSE_TYPES.has(pt) && !S.files.kurse) { S.files.kurse = doc; markSlot('kurse', pt, count); }
+        if (PRODUCT_TYPES.has(pt) && !S.files.angebote) { S.files.angebote = doc; markSlot('angebote', pt, count); }
       }
-
-      // If one big "all content" export: same doc covers all three
       const types = Object.keys(typeCounts);
-      const hasLessons  = types.some(t => LESSON_TYPES.has(t));
-      const hasCourses  = types.some(t => COURSE_TYPES.has(t));
-      const hasProducts = types.some(t => PRODUCT_TYPES.has(t));
-      if (hasLessons  && !S.files.lessons)  { S.files.lessons  = doc; markSlot('lessons',  types.find(t=>LESSON_TYPES.has(t)),  typeCounts[types.find(t=>LESSON_TYPES.has(t))]); }
-      if (hasCourses  && !S.files.kurse)    { S.files.kurse    = doc; markSlot('kurse',    types.find(t=>COURSE_TYPES.has(t)),  typeCounts[types.find(t=>COURSE_TYPES.has(t))]); }
-      if (hasProducts && !S.files.angebote) { S.files.angebote = doc; markSlot('angebote', types.find(t=>PRODUCT_TYPES.has(t)), typeCounts[types.find(t=>PRODUCT_TYPES.has(t))]); }
-
-      // Extract term definitions (the missing piece for section ID mapping)
+      const hasL = types.some(t=>LESSON_TYPES.has(t)), hasC = types.some(t=>COURSE_TYPES.has(t)), hasP = types.some(t=>PRODUCT_TYPES.has(t));
+      if (hasL && !S.files.lessons) { S.files.lessons = doc; markSlot('lessons', types.find(t=>LESSON_TYPES.has(t)), typeCounts[types.find(t=>LESSON_TYPES.has(t))]); }
+      if (hasC && !S.files.kurse) { S.files.kurse = doc; markSlot('kurse', types.find(t=>COURSE_TYPES.has(t)), typeCounts[types.find(t=>COURSE_TYPES.has(t))]); }
+      if (hasP && !S.files.angebote) { S.files.angebote = doc; markSlot('angebote', types.find(t=>PRODUCT_TYPES.has(t)), typeCounts[types.find(t=>PRODUCT_TYPES.has(t))]); }
       let termCount = 0;
-      doc.querySelectorAll('term').forEach(term => {
-        const taxonomy = cdata(term.querySelector('term_taxonomy'));
-        if (taxonomy && taxonomy.toLowerCase().includes('course')) {
-          const termId   = cdata(term.querySelector('term_id'));
-          const termSlug = cdata(term.querySelector('term_slug'));
-          if (termId && termSlug) {
-            S.termIdToSlug.set(termId,   termSlug);
-            S.termIdToSlug.set(termSlug, termSlug);
-            termCount++;
-          }
-        }
-      });
-
-      // Show status cards
+      doc.querySelectorAll('term').forEach(term => { const tax = cdata(term.querySelector('term_taxonomy')); if (tax && tax.toLowerCase().includes('course')) { const tid = cdata(term.querySelector('term_id')), tsl = cdata(term.querySelector('term_slug')); if (tid && tsl) { S.termIdToSlug.set(tid, tsl); S.termIdToSlug.set(tsl, tsl); termCount++; } } });
       document.getElementById('status-cards').style.display = 'block';
       updateTermStatus(termCount);
-
-      if (!hasLessons && !hasCourses && !hasProducts) {
-        showUploadError(`"${file.name}": Keine bekannten Kurs-Inhalte gefunden. Bitte "Alle Inhalte" aus WordPress exportieren.`);
-      }
-
-    } catch(err) {
-      showUploadError(err.message);
-    }
+      if (!hasL && !hasC && !hasP) showUploadError('"'+file.name+'": Keine Kurs-Inhalte gefunden.');
+    } catch(err) { showUploadError(err.message); }
     checkReady();
   };
   reader.readAsText(file, 'UTF-8');
 }
 
 function markSlot(slot, postType, count) {
-  document.getElementById('icon-' + slot).textContent   = '✅';
-  document.getElementById('status-' + slot).textContent = `${count} Einträge (${postType})`;
-  document.getElementById('card-' + slot).classList.add('loaded');
+  document.getElementById('status-'+slot).textContent = count+' Eintraege ('+postType+')';
+  const card = document.getElementById('card-'+slot);
+  card.style.borderColor = '#92BB20';
+  card.style.background = 'rgba(146,187,32,0.08)';
+  document.getElementById('dot-'+slot).style.background = '#92BB20';
+  document.getElementById('dot-'+slot).style.boxShadow = '0 0 8px rgba(146,187,32,0.6)';
 }
 
 function updateTermStatus(count) {
-  const el   = document.getElementById('status-terms');
-  const ic   = document.getElementById('icon-terms');
-  const card = document.getElementById('card-terms');
-  if (count > 0) {
-    ic.textContent  = '✅';
-    el.textContent  = `${count} Term-Definitionen gefunden – Sektions-Zuordnung vollständig automatisch`;
-    card.classList.add('loaded');
-  } else {
-    ic.textContent  = '⚠️';
-    el.innerHTML    = `Keine Term-Definitionen. <strong>Bitte „Alle Inhalte" exportieren</strong> – sonst manuell zuordnen.`;
-    card.classList.add('warn');
-  }
+  const el = document.getElementById('status-terms'), card = document.getElementById('card-terms'), dot = document.getElementById('dot-terms');
+  if (count > 0) { el.textContent = count+' Term-Definitionen - automatische Zuordnung aktiv'; card.style.borderColor = '#92BB20'; card.style.background = 'rgba(146,187,32,0.08)'; dot.style.background = '#92BB20'; dot.style.boxShadow = '0 0 8px rgba(146,187,32,0.6)'; }
+  else { el.innerHTML = 'Keine Term-Definitionen. <strong style="color:white">Alle Inhalte exportieren</strong> fuer automatische Zuordnung.'; card.style.borderColor = '#b45309'; card.style.background = 'rgba(180,83,9,0.08)'; dot.style.background = '#f59e0b'; }
 }
 
 function checkReady() {
-  const allReady = ['lessons','kurse','angebote'].every(k => S.files[k]);
+  const allReady = ['lessons','kurse','angebote'].every(k=>S.files[k]);
   document.getElementById('btn-next-1').disabled = !allReady;
   const hintEl = document.getElementById('upload-hint');
   if (allReady) {
-    hintEl.textContent = 'Alle Inhalte erkannt – bereit!';
-    hintEl.classList.add('ready');
-    const z = document.getElementById('zone-main');
-    z.style.borderColor = 'var(--g)';
-    z.style.background  = 'var(--g-lt)';
-    setZoneIcon(SVG_CHECK);
+    hintEl.textContent = 'Alle Inhalte erkannt - bereit!'; hintEl.style.color = '#92BB20'; hintEl.style.fontWeight = '700';
+    const zone = document.getElementById('zone-main');
+    zone.style.borderColor = '#92BB20'; zone.style.borderStyle = 'solid';
+    zone.style.background = 'rgba(146,187,32,0.05)';
+    document.getElementById('zone-icon').innerHTML = '<svg width="32" height="32" fill="none" stroke="#92BB20" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
   } else {
     const n = ['lessons','kurse','angebote'].filter(k=>S.files[k]).length;
-    hintEl.textContent = n ? `${n} von 3 Typen erkannt …` : 'Bitte XML-Datei hochladen';
-    hintEl.classList.remove('ready');
+    hintEl.textContent = n ? n+' von 3 erkannt ...' : 'Bitte XML-Datei hochladen'; hintEl.style.color = 'rgba(255,255,255,0.4)'; hintEl.style.fontWeight = '400';
   }
 }
 
-function showUploadError(msg) {
-  document.getElementById('upload-error').style.display = 'flex';
-  document.getElementById('upload-error-msg').textContent = msg;
-}
-function hideUploadError() {
-  document.getElementById('upload-error').style.display = 'none';
-}
+function showUploadError(msg) { document.getElementById('upload-error-msg').textContent = msg; document.getElementById('upload-error').style.display = 'flex'; }
+function hideUploadError() { document.getElementById('upload-error').style.display = 'none'; }
 
-// ═══════════════════════════════════════════════════
-// RENDER: PREVIEW  (Step 2)
-// ═══════════════════════════════════════════════════
 function renderPreview() {
-  const lessons  = S.transformedLessons;
-  const products = S.transformedProducts;
-  const cats     = S.categories;
-  const courses  = cats.filter(c => !c.parent_slug);
-  const sections = cats.filter(c =>  c.parent_slug);
-  const quizzes  = lessons.filter(l => l._hasQuiz).length;
-
-  document.getElementById('stat-kurse').textContent     = courses.length;
+  const lessons = S.transformedLessons, products = S.transformedProducts, cats = S.categories;
+  const courses = cats.filter(c=>!c.parent_slug), sections = cats.filter(c=>c.parent_slug);
+  document.getElementById('stat-kurse').textContent = courses.length;
   document.getElementById('stat-sektionen').textContent = sections.length;
   document.getElementById('stat-lektionen').textContent = lessons.length;
-  document.getElementById('stat-angebote').textContent  = products.length;
-  document.getElementById('stat-quizzes').textContent   = quizzes;
-
-  // ── Category Tree ──────────────────────────────
+  document.getElementById('stat-angebote').textContent = products.length;
+  document.getElementById('stat-quizzes').textContent = lessons.filter(l=>l._hasQuiz).length;
   const treeEl = document.getElementById('cat-tree-wrap');
-  if (!courses.length) {
-    treeEl.innerHTML = '<div class="alert alert-warn" style="margin-top:0">⚠️ Keine Kurse/Sektionen erkannt. Überprüfe die Sections.xml – sie muss <code>&lt;category domain="mpcs-course-categories"&gt;</code> Einträge enthalten.</div>';
-  } else {
-    const lessonsIn = slug => lessons.filter(l => l.categories.some(c => c.slug === slug)).length;
+  if (!courses.length) { treeEl.innerHTML = '<div style="color:rgba(255,255,255,.5);padding:16px 0">Keine Kurse/Sektionen erkannt.</div>'; }
+  else {
+    const lessonsIn = slug => lessons.filter(l=>l.categories.some(c=>c.slug===slug)).length;
     treeEl.innerHTML = courses.map(course => {
-      const sub = sections.filter(s => s.parent_slug === course.slug);
-      const subHtml = sub.map(s => {
-        const n = lessonsIn(s.slug);
-        return `<div class="cat-section-row">
-          <span>${esc(s.name)}</span>
-          <span class="tag tag-blue">${n} Lektion${n!==1?'en':''}</span>
-          <span style="font-size:11px;color:var(--ink3);font-family:monospace">${esc(s.slug)}</span>
-        </div>`;
-      }).join('');
+      const sub = sections.filter(s=>s.parent_slug===course.slug);
+      const subHtml = sub.map(s => { const n = lessonsIn(s.slug); return '<div style="padding:7px 0 7px 20px;color:rgba(255,255,255,.65);display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:rgba(255,255,255,.3);font-family:monospace">+-</span><span>'+esc(s.name)+'</span><span style="background:rgba(146,187,32,.15);color:#92BB20;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700">'+n+' Lekt.</span><span style="font-family:monospace;font-size:11px;color:rgba(255,255,255,.25)">'+esc(s.slug)+'</span></div>'; }).join('');
       const total = lessonsIn(course.slug);
-      return `<div style="margin-bottom:20px">
-        <div class="cat-course-row">${esc(course.name)}
-          <span class="tag tag-green">${total} Lektionen gesamt</span>
-          <span style="font-size:11px;color:var(--ink3);font-family:monospace">${esc(course.slug)}</span>
-        </div>
-        ${subHtml || '<div class="cat-section-row" style="color:var(--ink3)">Keine Sektionen</div>'}
-      </div>`;
+      return '<div style="margin-bottom:16px"><div style="font-weight:800;font-size:14px;color:white;padding:12px 0 9px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span>'+esc(course.name)+'</span><span style="background:rgba(146,187,32,.15);color:#92BB20;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:700">'+total+' Lektionen</span></div>'+subHtml+'</div>';
     }).join('');
   }
-
-  // ── Lessons Table ──────────────────────────────
-  document.getElementById('tbody-lessons-prev').innerHTML = lessons.length
-    ? lessons.map((l,i) => `<tr>
-        <td style="color:var(--ink3);font-size:11px">${i+1}</td>
-        <td><strong>${esc(l.title)}</strong></td>
-        <td>${l.categories[0] ? `<span class="tag tag-blue">${esc(l.categories[0].name)}</span>` : '<span class="tag tag-red">fehlt</span>'}</td>
-        <td>${l.categories[1] ? `<span class="tag tag-green">${esc(l.categories[1].name)}</span>` : '—'}</td>
-        <td class="mono">${l.menu_order}</td>
-        <td>${l._hasQuiz ? '<span class="tag tag-orange">Quiz</span>' : '<span class="tag tag-gray">–</span>'}</td>
-        <td class="mono" style="font-size:11px">${esc(l.slug)}</td>
-      </tr>`).join('')
-    : '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink3)">Keine Lektionen gefunden</td></tr>';
-
-  // ── Angebote Table ─────────────────────────────
-  document.getElementById('tbody-angebote-prev').innerHTML = products.length
-    ? products.map((p,i) => `<tr>
-        <td style="color:var(--ink3);font-size:11px">${i+1}</td>
-        <td><strong>${esc(p.title)}</strong></td>
-        <td><span class="tag tag-blue">wg_angebot</span></td>
-        <td class="mono" style="font-size:11px">${esc(p.slug)}</td>
-        <td style="font-size:11px;color:var(--ink3)">${Object.keys(p.postmeta).length} Felder</td>
-      </tr>`).join('')
-    : '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--ink3)">Keine Angebote gefunden</td></tr>';
+  const esc2 = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  document.getElementById('tbody-lessons-prev').innerHTML = lessons.length ? lessons.map((l,i) => '<tr><td style="color:rgba(255,255,255,.3);font-size:11px">'+(i+1)+'</td><td style="color:white;font-weight:600">'+esc2(l.title)+'</td><td>'+(l.categories[0]?'<span style="background:rgba(29,111,216,.2);color:#7dd3fc;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700">'+esc2(l.categories[0].name)+'</span>':'<span style="background:rgba(192,57,43,.2);color:#f87171;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700">fehlt</span>')+'</td><td>'+(l.categories[1]?'<span style="background:rgba(146,187,32,.15);color:#92BB20;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700">'+esc2(l.categories[1].name)+'</span>':'<span style="color:rgba(255,255,255,.3)">—</span>')+'</td><td style="font-family:monospace;color:rgba(255,255,255,.5)">'+l.menu_order+'</td><td>'+(l._hasQuiz?'<span style="background:rgba(180,83,9,.2);color:#fbbf24;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700">Quiz</span>':'<span style="color:rgba(255,255,255,.25)">–</span>')+'</td><td style="font-family:monospace;font-size:11px;color:rgba(255,255,255,.4)">'+esc2(l.slug)+'</td></tr>').join('') : '<tr><td colspan="7" style="text-align:center;padding:28px;color:rgba(255,255,255,.3)">Keine Lektionen</td></tr>';
+  document.getElementById('tbody-angebote-prev').innerHTML = products.length ? products.map((p,i) => '<tr><td style="color:rgba(255,255,255,.3);font-size:11px">'+(i+1)+'</td><td style="color:white;font-weight:600">'+esc2(p.title)+'</td><td><span style="background:rgba(29,111,216,.2);color:#7dd3fc;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700">wg_angebot</span></td><td style="font-family:monospace;font-size:11px;color:rgba(255,255,255,.4)">'+esc2(p.slug)+'</td><td style="font-size:11px;color:rgba(255,255,255,.4)">'+Object.keys(p.postmeta).length+' Felder</td></tr>').join('') : '<tr><td colspan="5" style="text-align:center;padding:28px;color:rgba(255,255,255,.3)">Keine Angebote</td></tr>';
 }
 
-function showTab(id, el) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  if (el) el.classList.add('active');
-}
+function showTab(id, el) { document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.getElementById(id).classList.add('active'); if(el) el.classList.add('active'); }
 
-// ═══════════════════════════════════════════════════
-// RENDER: VALIDATION  (Step 3)
-// ═══════════════════════════════════════════════════
 function runValidation() {
   S.validation = validateData(S.categories, S.transformedLessons, S.transformedProducts);
-
-  const { valid, errors, warnings } = S.validation;
-  const lessons  = S.transformedLessons;
-  const products = S.transformedProducts;
-  const cats     = S.categories;
-
-  // Summary bar
-  const resolved = lessons.filter(l => l._resolved).length;
-  document.getElementById('val-summary-bar').innerHTML = [
-    `${resolved === lessons.length ? '✅' : '⚠️'} <strong>${resolved} / ${lessons.length}</strong> Lektionen zugeordnet`,
-    `✅ <strong>${cats.filter(c=>!c.parent_slug).length}</strong> Kurse`,
-    `✅ <strong>${cats.filter(c=> c.parent_slug).length}</strong> Sektionen`,
-    `✅ <strong>${products.length}</strong> Angebote`,
-    `✅ <strong>${lessons.filter(l=>l._hasQuiz).length}</strong> Quizzes extrahiert`,
-  ].map(s => `<span>${s}</span>`).join('');
-
-  // Item list
+  const { valid, errors, warnings } = S.validation, lessons = S.transformedLessons, products = S.transformedProducts, cats = S.categories;
+  const resolved = lessons.filter(l=>l._resolved).length;
+  document.getElementById('val-summary-bar').innerHTML = ['<strong style="color:'+(resolved===lessons.length?'#92BB20':'#fbbf24')+'">'+resolved+'/'+lessons.length+'</strong> zugeordnet','<strong>'+cats.filter(c=>!c.parent_slug).length+'</strong> Kurse','<strong>'+cats.filter(c=>c.parent_slug).length+'</strong> Sektionen','<strong>'+products.length+'</strong> Angebote','<strong>'+lessons.filter(l=>l._hasQuiz).length+'</strong> Quizzes'].map(s=>'<span>'+s+'</span>').join('');
   const items = [];
-  errors.forEach(e   => items.push(`<li class="val-item"><span class="val-icon">❌</span><div class="val-msg"><strong>${esc(e.msg)}</strong>${e.detail?`<div class="val-detail">${esc(e.detail)}</div>`:''}</div></li>`));
-  warnings.forEach(w => items.push(`<li class="val-item"><span class="val-icon">⚠️</span><div class="val-msg">${esc(w.msg)}${w.detail?`<div class="val-detail">${esc(w.detail)}</div>`:''}</div></li>`));
-  if (valid) items.push('<li class="val-item"><span class="val-icon">✅</span><div class="val-msg"><strong>Alle Pflichtprüfungen bestanden – Export ist bereit.</strong></div></li>');
-
+  errors.forEach(e => items.push('<li style="display:flex;gap:11px;align-items:flex-start;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px"><span style="color:#f87171;font-weight:900;font-size:16px">&#x2717;</span><div style="flex:1;color:rgba(255,255,255,.75)"><strong style="color:white">'+esc(e.msg)+'</strong>'+(e.detail?'<div style="color:rgba(255,255,255,.35);font-size:11px;margin-top:5px;font-family:monospace;word-break:break-all;background:rgba(255,255,255,.04);padding:5px 9px;border-radius:6px">'+esc(e.detail)+'</div>':'')+'</div></li>'));
+  warnings.forEach(w => items.push('<li style="display:flex;gap:11px;align-items:flex-start;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px"><span style="color:#fbbf24;font-weight:900;font-size:16px">!</span><div style="flex:1;color:rgba(255,255,255,.6)">'+esc(w.msg)+(w.detail?'<div style="color:rgba(255,255,255,.3);font-size:11px;margin-top:5px;font-family:monospace;word-break:break-all;background:rgba(255,255,255,.04);padding:5px 9px;border-radius:6px">'+esc(w.detail)+'</div>':'')+'</div></li>'));
+  if (valid) items.push('<li style="display:flex;gap:11px;align-items:flex-start;padding:12px 0;font-size:13px"><span style="color:#92BB20;font-weight:900;font-size:16px">&#x2713;</span><div style="color:white;font-weight:700">Alle Pruefungen bestanden - Export ist bereit.</div></li>');
   document.getElementById('val-list').innerHTML = items.join('');
   document.getElementById('btn-to-export').disabled = !valid;
-  document.getElementById('val-block-msg').textContent = !valid ? `${errors.length} Fehler müssen zuerst behoben werden.` : '';
+  document.getElementById('val-block-msg').textContent = !valid ? errors.length+' Fehler muessen behoben werden.' : '';
 }
 
-// ═══════════════════════════════════════════════════
-// RENDER: EXPORT  (Step 4)
-// ═══════════════════════════════════════════════════
 function prepareExport() {
   S.wxrContent = generateWXR(S.categories, S.transformedLessons, S.transformedProducts);
   const kb = Math.round(S.wxrContent.length / 1024);
-  document.getElementById('export-summary').innerHTML = `
-    <div class="alert alert-success" style="margin-bottom:0">
-      ✅ <div>
-        <strong>Export fertig!</strong> &nbsp;
-        ${S.transformedLessons.length} Lektionen &nbsp;·&nbsp;
-        ${S.transformedProducts.length} Angebote &nbsp;·&nbsp;
-        ${S.categories.length} Kategorien &nbsp;·&nbsp;
-        ${kb} KB
-      </div>
-    </div>`;
+  document.getElementById('export-summary').innerHTML = '<div style="background:rgba(146,187,32,.1);border:1px solid rgba(146,187,32,.3);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:12px;margin-top:16px"><span style="font-size:22px;font-weight:900;color:#92BB20">&#x2713;</span><div style="color:rgba(255,255,255,.8)"><strong style="color:white">Export fertig:</strong> '+S.transformedLessons.length+' Lektionen &nbsp;&middot;&nbsp; '+S.transformedProducts.length+' Angebote &nbsp;&middot;&nbsp; '+S.categories.length+' Kategorien &nbsp;&middot;&nbsp; '+kb+' KB</div></div>';
 }
 
 function downloadWXR() {
-  if (!S.wxrContent) { alert('Kein Export vorhanden – bitte zuerst generieren.'); return; }
+  if (!S.wxrContent) { alert('Kein Export vorhanden.'); return; }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([S.wxrContent], { type: 'application/xml;charset=utf-8' }));
-  a.download = 'wg-migration-export.xml';
-  a.click();
-  URL.revokeObjectURL(a.href);
+  a.download = 'wg-migration-export.xml'; a.click(); URL.revokeObjectURL(a.href);
 }
 
 function copyWXR() {
   if (!S.wxrContent) return;
-  navigator.clipboard.writeText(S.wxrContent)
-    .then(() => alert('WXR-XML in Zwischenablage kopiert!'))
-    .catch(() => alert('Kopieren fehlgeschlagen – bitte herunterladen.'));
+  navigator.clipboard.writeText(S.wxrContent).then(()=>alert('XML kopiert!')).catch(()=>alert('Kopieren fehlgeschlagen.'));
 }
 </script>
 </body>
